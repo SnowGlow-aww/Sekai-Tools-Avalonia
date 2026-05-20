@@ -4,7 +4,7 @@
         <!-- SekaiPlatform 后端的客户端 SDK 层。
              包含 HTTP 客户端 / DTO / 高层服务封装 / 翻译工作台所需的 ViewModel。
              目标 net8.0：无 UI 依赖，可被 Avalonia 桌面端直接引用，未来也方便接到其它宿主 (CLI / Tests)。 -->
-        <TargetFramework>net10.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <RootNamespace>SekaiToolsPlatform</RootNamespace>

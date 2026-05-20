@@ -3,16 +3,13 @@ name: .net build
 on:
   push:
   pull_request:
-    branches: [ main ]
+    branches: [ main, avalonia ]
     paths-ignore:
       - 'README.md'
-      - 'Test'
   workflow_dispatch:
 
 env:
-  DOTNET_VERSION: '9.0.x' # The .NET SDK version to use
-  BUILD_DIR: 'SekaiTools'
-  PROJECT_NAME: 'SekaiToolsGUI'
+  DOTNET_VERSION: '8.0.x'
 
 jobs:
   build:
@@ -20,7 +17,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ windows-latest ]
+        os: [ ubuntu-latest, windows-latest, macos-latest ]
 
     steps:
       - name: Checkout source
@@ -31,15 +28,5 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Dotnet Build
-        run: |
-          dotnet restore ${{ env.PROJECT_NAME }}
-          dotnet publish ${{ env.PROJECT_NAME }} -c Release --no-restore  -o ${{ env.BUILD_DIR }} -v detailed
+        run: dotnet build SekaiToolsApp/SekaiToolsApp.csproj -c Release
 
-      - name: Zip the Build
-        run: 7z a SekaiTools-Nightly.7z ${{ env.BUILD_DIR }}/*
-
-      - name: Create Release and Upload Release Asset
-        uses: actions/upload-artifact@v4
-        with:
-          name: SekaiTools-Nightly
-          path: ${{ env.BUILD_DIR }}

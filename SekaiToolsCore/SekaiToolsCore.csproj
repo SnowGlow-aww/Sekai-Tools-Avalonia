@@ -3,7 +3,7 @@
     <PropertyGroup>
         <!-- 跨平台 net8.0：原 net8.0-windows 仅为承接 GDI+，
              已在 M1 由 SkiaSharp 替换。 -->
-        <TargetFramework>net10.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <LangVersion>default</LangVersion>
         <Nullable>enable</Nullable>

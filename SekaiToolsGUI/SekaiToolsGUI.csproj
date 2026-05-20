@@ -1,0 +1,292 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net8.0-windows</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <UseWPF>true</UseWPF>
+        <ApplicationIcon>Resource\icon.ico</ApplicationIcon>
+        <Configurations>Debug;Release</Configurations>
+        <Platforms>AnyCPU;x64</Platforms>
+        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+        <LangVersion>default</LangVersion>
+        <PackageProjectUrl>https://github.com/icexbb/sekaiTools</PackageProjectUrl>
+        <PackageIcon>Resource\icon.png</PackageIcon>
+        <RuntimeIdentifiers>win-x64;</RuntimeIdentifiers>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="CalcBinding" Version="2.5.2"/>
+        <PackageReference Include="Emgu.CV.Wpf" Version="4.12.0.5764"/>
+        <PackageReference Include="System.Reactive" Version="7.0.0-preview.1" />
+        <PackageReference Include="System.Text.Json" Version="10.0.1"/>
+        <PackageReference Include="TextCopy" Version="6.2.1"/>
+        <PackageReference Include="WPF-UI" Version="4.2.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\SekaiDataFetch\SekaiDataFetch.csproj"/>
+        <ProjectReference Include="..\SekaiToolsCore\SekaiToolsCore.csproj"/>
+        <ProjectReference Include="..\Updater\Updater.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Remove="Resource\icon.png"/>
+        <Resource Include="Resource\icon.png"/>
+        <None Remove="Resource\Characters\chr_1.png"/>
+        <Resource Include="Resource\Characters\chr_1.png"/>
+        <None Remove="Resource\Characters\chr_2.png"/>
+        <Resource Include="Resource\Characters\chr_2.png"/>
+        <None Remove="Resource\Characters\chr_3.png"/>
+        <Resource Include="Resource\Characters\chr_3.png"/>
+        <None Remove="Resource\Characters\chr_4.png"/>
+        <Resource Include="Resource\Characters\chr_4.png"/>
+        <None Remove="Resource\Characters\chr_5.png"/>
+        <Resource Include="Resource\Characters\chr_5.png"/>
+        <None Remove="Resource\Characters\chr_6.png"/>
+        <Resource Include="Resource\Characters\chr_6.png"/>
+        <None Remove="Resource\Characters\chr_7.png"/>
+        <Resource Include="Resource\Characters\chr_7.png"/>
+        <None Remove="Resource\Characters\chr_8.png"/>
+        <Resource Include="Resource\Characters\chr_8.png"/>
+        <None Remove="Resource\Characters\chr_9.png"/>
+        <Resource Include="Resource\Characters\chr_9.png"/>
+        <None Remove="Resource\Characters\chr_10.png"/>
+        <Resource Include="Resource\Characters\chr_10.png"/>
+        <None Remove="Resource\Characters\chr_11.png"/>
+        <Resource Include="Resource\Characters\chr_11.png"/>
+        <None Remove="Resource\Characters\chr_12.png"/>
+        <Resource Include="Resource\Characters\chr_12.png"/>
+        <None Remove="Resource\Characters\chr_13.png"/>
+        <Resource Include="Resource\Characters\chr_13.png"/>
+        <None Remove="Resource\Characters\chr_14.png"/>
+        <Resource Include="Resource\Characters\chr_14.png"/>
+        <None Remove="Resource\Characters\chr_15.png"/>
+        <Resource Include="Resource\Characters\chr_15.png"/>
+        <None Remove="Resource\Characters\chr_16.png"/>
+        <Resource Include="Resource\Characters\chr_16.png"/>
+        <None Remove="Resource\Characters\chr_17.png"/>
+        <Resource Include="Resource\Characters\chr_17.png"/>
+        <None Remove="Resource\Characters\chr_18.png"/>
+        <Resource Include="Resource\Characters\chr_18.png"/>
+        <None Remove="Resource\Characters\chr_19.png"/>
+        <Resource Include="Resource\Characters\chr_19.png"/>
+        <None Remove="Resource\Characters\chr_20.png"/>
+        <Resource Include="Resource\Characters\chr_20.png"/>
+        <None Remove="Resource\Characters\chr_21.png"/>
+        <Resource Include="Resource\Characters\chr_21.png"/>
+        <None Remove="Resource\Characters\chr_22.png"/>
+        <Resource Include="Resource\Characters\chr_22.png"/>
+        <None Remove="Resource\Characters\chr_23.png"/>
+        <Resource Include="Resource\Characters\chr_23.png"/>
+        <None Remove="Resource\Characters\chr_24.png"/>
+        <Resource Include="Resource\Characters\chr_24.png"/>
+        <None Remove="Resource\Characters\chr_25.png"/>
+        <Resource Include="Resource\Characters\chr_25.png"/>
+        <None Remove="Resource\Characters\chr_26.png"/>
+        <Resource Include="Resource\Characters\chr_26.png"/>
+        <None Remove="Resource\Characters\chr_27.png"/>
+        <Resource Include="Resource\Characters\chr_27.png"/>
+        <None Remove="Resource\Characters\chr_28.png"/>
+        <Resource Include="Resource\Characters\chr_28.png"/>
+        <None Remove="Resource\Characters\chr_29.png"/>
+        <Resource Include="Resource\Characters\chr_29.png"/>
+        <None Remove="Resource\Characters\chr_30.png"/>
+        <Resource Include="Resource\Characters\chr_30.png"/>
+        <None Remove="Resource\Characters\chr_31.png"/>
+        <Resource Include="Resource\Characters\chr_31.png"/>
+        <None Remove="Resource\Unit\logo_idol.png"/>
+        <Resource Include="Resource\Unit\logo_idol.png"/>
+        <None Remove="Resource\Unit\logo_light_sound.png"/>
+        <Resource Include="Resource\Unit\logo_light_sound.png"/>
+        <None Remove="Resource\Unit\logo_piapro.png"/>
+        <Resource Include="Resource\Unit\logo_piapro.png"/>
+        <None Remove="Resource\Unit\logo_school_refusal.png"/>
+        <Resource Include="Resource\Unit\logo_school_refusal.png"/>
+        <None Remove="Resource\Unit\logo_street.png"/>
+        <Resource Include="Resource\Unit\logo_street.png"/>
+        <None Remove="Resource\Unit\logo_theme_park.png"/>
+        <Resource Include="Resource\Unit\logo_theme_park.png"/>
+        <None Remove="Resource\Characters\chr_0.png"/>
+        <Resource Include="Resource\Characters\chr_0.png"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Page Update="View\Translate\Components\TranslateFastCopy.xaml">
+            <Generator>MSBuild:Compile</Generator>
+            <XamlRuntime>Wpf</XamlRuntime>
+            <SubType>Designer</SubType>
+        </Page>
+        <Page Update="View\Translate\Components\SaveFileDialog.xaml">
+            <Generator>MSBuild:Compile</Generator>
+            <XamlRuntime>Wpf</XamlRuntime>
+            <SubType>Designer</SubType>
+        </Page>
+        <Page Update="View\Translate\Components\AddCustomDialog.xaml">
+            <Generator>MSBuild:Compile</Generator>
+            <XamlRuntime>Wpf</XamlRuntime>
+            <SubType>Designer</SubType>
+        </Page>
+        <Page Update="View\Translate\Components\TranslateLineEffect.xaml">
+            <Generator>MSBuild:Compile</Generator>
+            <XamlRuntime>Wpf</XamlRuntime>
+            <SubType>Designer</SubType>
+        </Page>
+        <Page Update="View\Translate\Components\TranslateLineDialog.xaml">
+            <Generator>MSBuild:Compile</Generator>
+            <XamlRuntime>Wpf</XamlRuntime>
+            <SubType>Designer</SubType>
+        </Page>
+        <Page Update="View\Subtitle\Components\MarkerLine.xaml">
+            <Generator>MSBuild:Compile</Generator>
+            <XamlRuntime>Wpf</XamlRuntime>
+            <SubType>Designer</SubType>
+        </Page>
+        <Page Update="View\Subtitle\Components\QuickEditDialog.xaml">
+            <Generator>MSBuild:Compile</Generator>
+            <XamlRuntime>Wpf</XamlRuntime>
+            <SubType>Designer</SubType>
+        </Page>
+        <Page Update="View\Subtitle\Components\DialogLine.xaml">
+            <Generator>MSBuild:Compile</Generator>
+            <XamlRuntime>Wpf</XamlRuntime>
+            <SubType>Designer</SubType>
+        </Page>
+        <Page Update="View\Subtitle\Components\BannerLine.xaml">
+            <Generator>MSBuild:Compile</Generator>
+            <XamlRuntime>Wpf</XamlRuntime>
+            <SubType>Designer</SubType>
+        </Page>
+        <Page Update="View\Subtitle\Components\SaveFileDialog.xaml">
+            <Generator>MSBuild:Compile</Generator>
+            <XamlRuntime>Wpf</XamlRuntime>
+            <SubType>Designer</SubType>
+        </Page>
+        <Page Update="View\Setting\Components\FontSelectDialog.xaml">
+            <Generator>MSBuild:Compile</Generator>
+            <XamlRuntime>Wpf</XamlRuntime>
+            <SubType>Designer</SubType>
+        </Page>
+        <Page Update="View\Download\Components\DownloadItem.xaml">
+            <Generator>MSBuild:Compile</Generator>
+            <XamlRuntime>Wpf</XamlRuntime>
+            <SubType>Designer</SubType>
+        </Page>
+        <Page Update="View\Download\Components\DownloadTask.xaml">
+            <Generator>MSBuild:Compile</Generator>
+            <XamlRuntime>Wpf</XamlRuntime>
+            <SubType>Designer</SubType>
+        </Page>
+        <Page Update="View\Download\Components\Event\EventStoryTab.xaml">
+            <Generator>MSBuild:Compile</Generator>
+            <XamlRuntime>Wpf</XamlRuntime>
+            <SubType>Designer</SubType>
+        </Page>
+        <Page Update="View\Download\Components\Event\EventStoryEvent.xaml">
+            <Generator>MSBuild:Compile</Generator>
+            <XamlRuntime>Wpf</XamlRuntime>
+            <SubType>Designer</SubType>
+        </Page>
+        <Page Update="View\Download\Components\Special\SpecialStoryTab.xaml">
+            <Generator>MSBuild:Compile</Generator>
+            <XamlRuntime>Wpf</XamlRuntime>
+            <SubType>Designer</SubType>
+        </Page>
+        <Page Update="View\Download\Components\Unit\UnitStoryTab.xaml">
+            <Generator>MSBuild:Compile</Generator>
+            <XamlRuntime>Wpf</XamlRuntime>
+            <SubType>Designer</SubType>
+        </Page>
+        <Page Update="View\General\RefreshWaitDialog.xaml">
+            <Generator>MSBuild:Compile</Generator>
+            <XamlRuntime>Wpf</XamlRuntime>
+            <SubType>Designer</SubType>
+        </Page>
+    </ItemGroup>
+
+    <!-- 在主项目打包时，自动构建 Updater 并复制 -->
+    <Target Name="BuildUpdater" AfterTargets="Publish">
+        <PropertyGroup>
+            <OutputDir Condition="'$(PublishDir)' != ''">$(PublishDir)</OutputDir>
+            <OutputDir Condition="'$(PublishDir)' == ''">$(OutputPath)</OutputDir>
+        </PropertyGroup>
+
+        <!-- 构建 Updater 项目 -->
+        <Message Text="========================================" Importance="high"/>
+        <Message Text="开始构建 Updater 项目" Importance="high"/>
+        <Message Text="输出目录: $(OutputDir)" Importance="high"/>
+        <Message Text="========================================" Importance="high"/>
+
+        <MSBuild Projects="..\Updater\Updater.csproj"
+                 Targets="Publish"
+                 Properties="Configuration=$(Configuration);PublishDir=..\Updater\build\;"/>
+
+        <!-- 将 Updater.exe 复制到主程序的发布目录 -->
+        <ItemGroup>
+            <UpdaterFiles Include="..\Updater\build\**\*"/>
+            <UpdaterFiles Include="..\Updater\7zr.exe"/>
+        </ItemGroup>
+        <Copy SourceFiles="@(UpdaterFiles)"
+              DestinationFolder="$(OutputDir)%(RecursiveDir)"/>
+
+        <Message Text="Updater 构建完成" Importance="high"/>
+    </Target>
+
+    <!-- 在构建后整理输出文件 -->
+    <Target Name="OrganizeOutput" AfterTargets="BuildUpdater">
+        <PropertyGroup>
+            <OutputDir Condition="'$(PublishDir)' != ''">$(PublishDir)</OutputDir>
+            <OutputDir Condition="'$(PublishDir)' == ''">$(OutputPath)</OutputDir>
+            <LibsFolder>$(OutputDir)libs</LibsFolder>
+        </PropertyGroup>
+
+        <Message Text="========================================" Importance="high"/>
+        <Message Text="开始整理输出文件" Importance="high"/>
+        <Message Text="输出目录: $(OutputDir)" Importance="high"/>
+        <Message Text="========================================" Importance="high"/>
+
+        <!-- 创建 libs 文件夹 -->
+        <MakeDir Directories="$(LibsFolder)"/>
+        <Message Text="已创建 libs 文件夹" Importance="high"/>
+
+        <!-- 收集需要移动的 DLL（排除主程序、Updater 和 WPF 运行时） -->
+        <ItemGroup>
+            <AllDlls Include="$(OutputDir)*.dll"/>
+            <!-- 排除不需要移动的 DLL -->
+            <KeepDlls Include="$(OutputDir)SekaiToolsGUI.dll"/>
+            <KeepDlls Include="$(OutputDir)Updater.dll"/>
+            <!--            <KeepDlls Include="$(OutputDir)*_cor3.dll"/>-->
+            <BuildDlls Include="@(AllDlls)" Exclude="@(KeepDlls)"/>
+        </ItemGroup>
+
+        <Message Text="找到 %(BuildDlls.Filename)%(BuildDlls.Extension)" Importance="high"/>
+        <Message Text="共 @(BuildDlls->Count()) 个 DLL 需要移动" Importance="high"/>
+
+        <!-- 移动 DLL 到 libs 文件夹 -->
+        <Copy SourceFiles="@(BuildDlls)" DestinationFolder="$(LibsFolder)" SkipUnchangedFiles="false"/>
+        <Delete Files="@(BuildDlls)"/>
+
+        <Message Text="DLL 已移动到 libs 文件夹" Importance="high"/>
+
+        <!-- 删除多余的 runtime -->
+        <Message Text="正在删除多余的 runtime..." Importance="high"/>
+        <RemoveDir Directories="$(OutputDir)runtimes\win-x86" Condition="Exists('$(OutputDir)runtimes\win-x86')"/>
+        <RemoveDir Directories="$(OutputDir)runtimes\win-arm64" Condition="Exists('$(OutputDir)runtimes\win-arm64')"/>
+        <RemoveDir Directories="$(OutputDir)runtimes\win" Condition="Exists('$(OutputDir)runtimes\win')"/>
+        <RemoveDir Directories="$(OutputDir)runtimes\browser" Condition="Exists('$(OutputDir)runtimes\browser')"/>
+
+        <!-- 删除所有 PDB 文件 -->
+        <Message Text="正在删除 PDB 文件..." Importance="high"/>
+        <ItemGroup>
+            <AllPdbFiles Include="$(OutputDir)**\*.pdb"/>
+        </ItemGroup>
+        <Delete Files="@(AllPdbFiles)"/>
+        <Message Text="已删除 @(AllPdbFiles->Count()) 个 PDB 文件" Importance="high"/>
+
+        <Message Text="========================================" Importance="high"/>
+        <Message Text="文件整理完成！" Importance="high"/>
+        <Message Text="========================================" Importance="high"/>
+    </Target>
+
+</Project>

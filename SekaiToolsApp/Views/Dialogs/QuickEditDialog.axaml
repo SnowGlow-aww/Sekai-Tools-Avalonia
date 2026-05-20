@@ -1,0 +1,42 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:SekaiToolsApp.ViewModels"
+        mc:Ignorable="d"
+        x:Class="SekaiToolsApp.Views.Dialogs.QuickEditDialog"
+        x:DataType="vm:QuickEditDialogViewModel"
+        Title="对话语句快速调整"
+        Width="560"
+        SizeToContent="Height"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False">
+    <Grid RowDefinitions="Auto,Auto" Margin="16">
+        <StackPanel Grid.Row="0" Spacing="10">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Grid.Column="0" Text="对话语句快速调整"
+                           FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                <ToggleSwitch Grid.Column="1"
+                              OnContent="换行" OffContent="不换行"
+                              IsVisible="{Binding CanReturn}"
+                              IsChecked="{Binding UseReturn, Mode=TwoWay}"/>
+            </Grid>
+            <TextBlock Text="{Binding ContentOriginal}"
+                       TextWrapping="Wrap" Opacity="0.75"/>
+            <TextBox Name="TranslatedTextBox"
+                     MinHeight="64"
+                     MaxLines="2"
+                     TextWrapping="NoWrap"
+                     AcceptsReturn="True"
+                     KeyDown="OnTranslatedTextBoxKeyDown"
+                     TextInput="OnTranslatedTextBoxTextInput"
+                     Text="{Binding ContentTranslated, Mode=TwoWay}"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8"
+                    Margin="0,12,0,0">
+            <Button Content="取消" Width="88" Click="OnCancelClicked"/>
+            <Button Content="确认" Width="88" Classes="accent" Click="OnConfirmClicked"/>
+        </StackPanel>
+    </Grid>
+</Window>

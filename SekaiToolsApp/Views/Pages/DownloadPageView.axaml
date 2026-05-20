@@ -1,0 +1,310 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SekaiToolsApp.ViewModels"
+             xmlns:conv="using:SekaiToolsApp.Converters"
+             xmlns:src="using:SekaiDataFetch.Source"
+             xmlns:dl="using:SekaiToolsBase.DataList"
+             mc:Ignorable="d"
+             d:DesignWidth="900" d:DesignHeight="640"
+             x:Class="SekaiToolsApp.Views.Pages.DownloadPageView"
+             x:DataType="vm:DownloadPageViewModel">
+
+    <UserControl.Resources>
+        <conv:DownloadStatusToBrushConverter x:Key="StatusToBrushConverter"/>
+        <conv:AvaresUriToBitmapConverter x:Key="UriToBitmap"/>
+
+        <!-- 活动 / 区域 tab 共用的"Banner 角色筛选"模板：6 行（团 logo + 该团角色头像 CheckBox） -->
+        <DataTemplate x:Key="BannerUnitRowTemplate" x:DataType="vm:BannerUnitRow">
+            <Grid ColumnDefinitions="80,*" Margin="0,2">
+                <CheckBox Grid.Column="0" IsChecked="{Binding IsChecked, Mode=TwoWay}"
+                          VerticalAlignment="Center" Margin="0,0,4,0">
+                    <Image Source="{Binding LogoUri, Converter={StaticResource UriToBitmap}}" Height="18"/>
+                </CheckBox>
+                <ItemsControl Grid.Column="1" ItemsSource="{Binding Characters}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:CharacterCheckOption">
+                            <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay}"
+                                      Margin="2,0"
+                                      ToolTip.Tip="{Binding CharacterId, StringFormat='角色 ID {0}'}">
+                                <Image Source="{Binding ImageUri, Converter={StaticResource UriToBitmap}}" Height="24"/>
+                            </CheckBox>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Grid>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <Grid ColumnDefinitions="*,260" Margin="12">
+        <!-- 主内容：源 / 类型 / 单元 / 候选项 -->
+        <Grid Grid.Column="0" RowDefinitions="Auto,Auto,*">
+
+            <!-- 顶部：源 / 类型 / 刷新 -->
+            <Border Grid.Row="0"
+                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,0,8">
+                <Grid ColumnDefinitions="*,*,Auto">
+                    <ComboBox Grid.Column="0"
+                              ItemsSource="{Binding Sources}"
+                              SelectedIndex="{Binding CurrentSourceIndex, Mode=TwoWay}"
+                              HorizontalAlignment="Stretch"
+                              Margin="0,0,4,0"
+                              IsEnabled="{Binding !IsBusy}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="src:SourceData">
+                                <TextBlock Text="{Binding SourceName}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+
+                    <ComboBox Grid.Column="1"
+                              ItemsSource="{x:Static vm:DownloadPageViewModel.StoryTypeNames}"
+                              SelectedIndex="{Binding StoryTypeIndex, Mode=TwoWay}"
+                              HorizontalAlignment="Stretch"
+                              Margin="4,0"
+                              IsEnabled="{Binding !IsBusy}"/>
+
+                    <Button Grid.Column="2" Content="刷新"
+                            Click="OnRefreshClicked" Width="80"
+                            Margin="4,0,0,0"
+                            IsEnabled="{Binding !IsBusy}"/>
+                </Grid>
+            </Border>
+
+            <!-- 当前 Tab 的过滤区：每个 Tab 一个 Border，按 IsXxxTab 切换可见性 -->
+            <Panel Grid.Row="1" Margin="0,0,0,8">
+
+                <!-- Tab 0：主线 Unit 选择 -->
+                <Border BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="10"
+                        IsVisible="{Binding IsUnitTab}">
+                    <ItemsControl ItemsSource="{Binding Units}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:UnitOption">
+                                <RadioButton GroupName="UnitGroup"
+                                             IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                             Margin="4"
+                                             Click="OnUnitRadioChecked"
+                                             Tag="{Binding}"
+                                             ToolTip.Tip="{Binding DisplayName}">
+                                    <Image Source="{Binding LogoUri, Converter={StaticResource UriToBitmap}}" Height="28"/>
+                                </RadioButton>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Border>
+
+                <!-- Tab 1：活动剧情过滤（Banner 角色 Expander + 活动类型 ComboBox） -->
+                <Border BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="10"
+                        IsVisible="{Binding IsEventTab}">
+                    <StackPanel Spacing="6">
+                        <Expander Header="Banner 角色筛选" IsExpanded="False">
+                            <StackPanel Spacing="4" Margin="0,4">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button Content="全选" Click="OnBannerSelectAllClicked" MinWidth="70"/>
+                                    <Button Content="清除" Click="OnBannerClearAllClicked" MinWidth="70"/>
+                                </StackPanel>
+                                <ItemsControl ItemsSource="{Binding BannerUnits}"
+                                              ItemTemplate="{StaticResource BannerUnitRowTemplate}"/>
+                            </StackPanel>
+                        </Expander>
+                        <Grid ColumnDefinitions="Auto,*">
+                            <TextBlock Grid.Column="0" Text="活动类型："
+                                       VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <ComboBox Grid.Column="1"
+                                      ItemsSource="{x:Static vm:DownloadPageViewModel.EventTypeFilterNames}"
+                                      SelectedIndex="{Binding EventTypeFilter, Mode=TwoWay}"
+                                      HorizontalAlignment="Left" MinWidth="220"
+                                      IsEnabled="{Binding !IsBusy}"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Tab 2：特殊剧情标题选择 -->
+                <Border BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="10"
+                        IsVisible="{Binding IsSpecialTab}">
+                    <Grid ColumnDefinitions="Auto,*">
+                        <TextBlock Grid.Column="0" Text="特殊剧情："
+                                   VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <ComboBox Grid.Column="1"
+                                  ItemsSource="{Binding SpecialTitles}"
+                                  SelectedItem="{Binding SelectedSpecial, Mode=TwoWay}"
+                                  HorizontalAlignment="Stretch"
+                                  PlaceholderText="先点 “刷新” 拉取列表"
+                                  IsEnabled="{Binding !IsBusy}"/>
+                    </Grid>
+                </Border>
+
+                <!-- Tab 3：角色剧情角色选择 -->
+                <Border BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="10"
+                        IsVisible="{Binding IsCardTab}">
+                    <Grid ColumnDefinitions="Auto,*">
+                        <TextBlock Grid.Column="0" Text="角色："
+                                   VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <ComboBox Grid.Column="1"
+                                  ItemsSource="{Binding Characters}"
+                                  SelectedItem="{Binding SelectedCharacter, Mode=TwoWay}"
+                                  HorizontalAlignment="Left" MinWidth="220"
+                                  IsEnabled="{Binding !IsBusy}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate x:DataType="vm:CharacterOption">
+                                    <TextBlock Text="{Binding DisplayWithId}"/>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </Grid>
+                </Border>
+
+                <!-- Tab 4：地图对话过滤（Banner 角色 Expander + 区域 ComboBox） -->
+                <Border BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="10"
+                        IsVisible="{Binding IsActionTab}">
+                    <StackPanel Spacing="6">
+                        <Expander Header="角色筛选" IsExpanded="False">
+                            <StackPanel Spacing="4" Margin="0,4">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button Content="全选" Click="OnBannerSelectAllClicked" MinWidth="70"/>
+                                    <Button Content="清除" Click="OnBannerClearAllClicked" MinWidth="70"/>
+                                </StackPanel>
+                                <ItemsControl ItemsSource="{Binding BannerUnits}"
+                                              ItemTemplate="{StaticResource BannerUnitRowTemplate}"/>
+                            </StackPanel>
+                        </Expander>
+                        <Grid ColumnDefinitions="Auto,*">
+                            <TextBlock Grid.Column="0" Text="区域："
+                                       VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <ComboBox Grid.Column="1"
+                                      ItemsSource="{Binding Areas}"
+                                      SelectedItem="{Binding SelectedArea, Mode=TwoWay}"
+                                      HorizontalAlignment="Stretch"
+                                      PlaceholderText="先点 “刷新” 拉取区域列表"
+                                      IsEnabled="{Binding !IsBusy}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate x:DataType="dl:Area">
+                                        <TextBlock Text="{Binding AreaName}"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </Panel>
+
+            <!-- 候选项列表 -->
+            <Border Grid.Row="2"
+                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="0">
+                <Grid RowDefinitions="Auto,*">
+                    <!-- 候选区头：状态信息 + 全部加入 -->
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="12,8">
+                        <TextBlock Grid.Column="0" Text="{Binding StatusMessage}"
+                                   IsVisible="{Binding HasStatus}"
+                                   Foreground="{DynamicResource SystemAccentColor}"
+                                   VerticalAlignment="Center"
+                                   TextWrapping="Wrap"/>
+                        <Button Grid.Column="1" Content="全部加入"
+                                Click="OnEnqueueAllClicked"
+                                IsEnabled="{Binding !IsBusy}"
+                                Margin="8,0,0,0"/>
+                    </Grid>
+
+                    <ScrollViewer Grid.Row="1">
+                        <ItemsControl ItemsSource="{Binding Candidates}" Margin="6">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:DownloadCandidate">
+                                    <Border Padding="8,6" Margin="6,3"
+                                            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                                            BorderThickness="1" CornerRadius="4">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <TextBlock Grid.Column="0" Text="{Binding Title}"
+                                                       VerticalAlignment="Center"
+                                                       Margin="0,0,8,0"
+                                                       TextWrapping="Wrap"/>
+                                            <Button Grid.Column="1" Content="加入"
+                                                    Width="64"
+                                                    Click="OnEnqueueClicked"
+                                                    Tag="{Binding}"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- 右栏：下载列表 -->
+        <Border Grid.Column="1"
+                BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="0" Margin="8,0,0,0">
+                <Grid RowDefinitions="Auto,*,Auto">
+                    <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto,Auto" Margin="6">
+                        <Button Grid.Column="0" Content="清空"
+                                Click="OnClearClicked"
+                                IsEnabled="{Binding !IsDownloading}"/>
+                        <TextBlock Grid.Column="1" Text="下载列表"
+                                   TextAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   FontWeight="SemiBold"/>
+                        <Button Grid.Column="2" Content="下载"
+                                Click="OnDownloadClicked"
+                                Classes="accent"
+                                IsEnabled="{Binding !IsBusy}"/>
+                        <Button Grid.Column="3" Content="打开目录"
+                                Click="OnOpenDownloadDirectoryClicked"
+                                Margin="6,0,0,0"/>
+                    </Grid>
+
+                <ScrollViewer Grid.Row="1">
+                    <ItemsControl ItemsSource="{Binding Tasks}" Margin="6">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:DownloadTaskItem">
+                                <Border Padding="6" Margin="0,3"
+                                        BorderThickness="2" CornerRadius="3"
+                                        BorderBrush="{Binding Status, Converter={StaticResource StatusToBrushConverter}}">
+                                    <StackPanel Spacing="2">
+                                        <TextBlock Text="{Binding Tag}" TextWrapping="Wrap"
+                                                   FontSize="12" FontWeight="SemiBold"/>
+                                        <TextBlock Text="{Binding StatusText}"
+                                                   FontSize="11" Opacity="0.7"/>
+                                        <TextBlock Text="{Binding SavePath}"
+                                                   FontSize="10" Opacity="0.65"
+                                                   TextWrapping="Wrap"
+                                                   IsVisible="{Binding HasSavePath}"/>
+                                        <StackPanel Orientation="Horizontal"
+                                                    HorizontalAlignment="Right"
+                                                    Spacing="6"
+                                                    IsVisible="{Binding HasSavePath}">
+                                            <Button Content="打开位置"
+                                                    Click="OnOpenSavePathClicked"
+                                                    Tag="{Binding}"
+                                                    Padding="8,2"
+                                                    FontSize="11"/>
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding LastError}"
+                                                   FontSize="10" Foreground="Red"
+                                                   IsVisible="{Binding HasError}"
+                                                   TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <TextBlock Grid.Row="2" Margin="6,4"
+                           Text="{Binding Tasks.Count, StringFormat='共 {0} 项'}"
+                           FontSize="11" Opacity="0.7"
+                           HorizontalAlignment="Center"/>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

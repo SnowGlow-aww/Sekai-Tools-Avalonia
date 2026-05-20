@@ -1,0 +1,166 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SekaiToolsPlatform.ViewModels"
+             xmlns:conv="using:SekaiToolsApp.Converters"
+             mc:Ignorable="d" d:DesignWidth="640"
+             x:DataType="vm:LineDialogModel"
+             x:Class="SekaiToolsApp.Views.Pages.Components.TranslateLineDialogView">
+    <StackPanel Spacing="0" Margin="0,2,0,0">
+        <Grid ColumnDefinitions="140,*" MinHeight="80" Margin="2,0">
+
+            <!-- 角色面板 -->
+            <Border Grid.Column="0"
+                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                    BorderThickness="1" CornerRadius="6"
+                    Margin="0,0,3,0" Padding="6,4">
+                <Grid ColumnDefinitions="32,*" RowDefinitions="Auto,Auto,Auto">
+                    <!-- 角色头像：来自 SekaiToolsGUI/Resource/Characters，已经通过 AvaloniaResource 嵌入 -->
+                    <Image Grid.Column="0" Grid.Row="0" Grid.RowSpan="3"
+                           Source="{Binding Icon, Converter={x:Static conv:IconNameToBitmapConverter.Instance}}"
+                           Width="28" Height="28"
+                           VerticalAlignment="Center"
+                           IsVisible="{Binding HasIcon}"/>
+                    <TextBlock Grid.Column="0" Grid.Row="0" Grid.RowSpan="3"
+                               Text="💬" FontSize="18"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                               IsVisible="{Binding HasNoIcon}"/>
+
+                    <TextBlock Grid.Column="1" Grid.Row="0"
+                               Text="{Binding OriginalCharacter}"
+                               HorizontalAlignment="Center" FontSize="12"
+                               TextTrimming="CharacterEllipsis"/>
+
+                    <TextBlock Grid.Column="1" Grid.Row="1"
+                               Text="↓" HorizontalAlignment="Center" FontSize="11"/>
+
+                    <TextBox Grid.Column="1" Grid.Row="2"
+                             Text="{Binding TranslatedCharacter, Mode=TwoWay}"
+                             Watermark="{Binding OriginalCharacter}"
+                             FontSize="12"
+                             TextAlignment="Center"
+                             HorizontalAlignment="Stretch"/>
+                </Grid>
+            </Border>
+
+            <!-- 正文面板 -->
+            <Border Grid.Column="1"
+                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="4" Padding="6,4">
+                <StackPanel Spacing="0">
+                    <Grid ColumnDefinitions="*,32,*">
+                        <!-- 原文 -->
+                        <TextBlock Grid.Column="0"
+                                   Text="{Binding OriginalContent}"
+                                   VerticalAlignment="Center" FontSize="13"
+                                   TextWrapping="Wrap"/>
+
+                        <!-- 箭头 + 校验告警 -->
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                            <TextBlock Text="→" HorizontalAlignment="Center" FontSize="14"/>
+                            <TextBlock Text="⚠" Foreground="Red"
+                                       HorizontalAlignment="Center" FontSize="14"
+                                       IsVisible="{Binding HasCheck}"
+                                       ToolTip.Tip="{Binding Check}"/>
+                        </StackPanel>
+
+                        <!-- 译文列：参考 / 输入 / 字数 -->
+                        <Grid Grid.Column="2" RowDefinitions="Auto,*,Auto,Auto">
+                            <TextBlock Grid.Row="0"
+                                       Text="{Binding ContentReference}"
+                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                       FontSize="11"
+                                       TextWrapping="Wrap"
+                                       IsVisible="{Binding HasContentReference}"/>
+
+                            <TextBox Grid.Row="1"
+                                     Text="{Binding TranslatedContent, Mode=TwoWay}"
+                                     AcceptsReturn="True"
+                                     TextWrapping="Wrap"
+                                     FontSize="13"
+                                     MinHeight="44"/>
+
+                            <StackPanel Grid.Row="2" Orientation="Horizontal"
+                                        HorizontalAlignment="Right"
+                                        IsVisible="{Binding HasTranslatedContent}">
+                                <TextBlock FontSize="11"
+                                           Foreground="{Binding TooLong, Converter={x:Static conv:BoolToWarningBrushConverter.Instance}}"
+                                           Text="{Binding MaxLineLength}"/>
+                                <TextBlock FontSize="11" Text=" / "/>
+                                <TextBlock FontSize="11" Text="{Binding TranslatedContent.Length}"/>
+                            </StackPanel>
+
+                            <TextBlock Grid.Row="3"
+                                       Text="{Binding Check}"
+                                       IsVisible="{Binding HasCheck}"
+                                       Foreground="{Binding HasCheck, Converter={x:Static conv:BoolToWarningBrushConverter.Instance}}"
+                                       FontSize="11"
+                                       Margin="0,4,0,0"
+                                       TextWrapping="Wrap"/>
+                        </Grid>
+                    </Grid>
+
+                    <Border IsVisible="{Binding HasReferenceDiffView}"
+                            Margin="0,6,0,0"
+                            Padding="6,4"
+                            CornerRadius="4"
+                            Background="{DynamicResource ControlAltFillColorTertiaryBrush}"
+                            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                            BorderThickness="1">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="对照差异" FontSize="10"
+                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}"/>
+                            <Grid ColumnDefinitions="42,*" RowDefinitions="Auto,Auto">
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="参考" FontSize="10" VerticalAlignment="Top"/>
+                                <ItemsControl Grid.Row="0" Grid.Column="1" ItemsSource="{Binding ContentReferenceDiffParts}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:DiffPartModel">
+                                            <TextBlock Text="{Binding Text}"
+                                                       FontSize="11"
+                                                       Margin="0,0,2,2"
+                                                       Padding="2,0"
+                                                       Background="{Binding Kind, Converter={x:Static conv:DiffPartKindToBrushConverter.Instance}}"/>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="译文" FontSize="10" VerticalAlignment="Top"/>
+                                <ItemsControl Grid.Row="1" Grid.Column="1" ItemsSource="{Binding TranslatedContentDiffParts}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:DiffPartModel">
+                                            <TextBlock Text="{Binding Text}"
+                                                       FontSize="11"
+                                                       Margin="0,0,2,2"
+                                                       Padding="2,0"
+                                                       Background="{Binding Kind, Converter={x:Static conv:DiffPartKindToBrushConverter.Instance}}"/>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- 段落分隔条：仅 EndLine 时显示 -->
+        <Border IsVisible="{Binding EndLine}"
+                Margin="2,4,2,0"
+                Background="{DynamicResource ControlAltFillColorTertiaryBrush}"
+                Padding="5,3" CornerRadius="4"
+                BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1">
+            <TextBlock Text="----- ----- -----"
+                       HorizontalAlignment="Center" FontSize="11"/>
+        </Border>
+    </StackPanel>
+</UserControl>

@@ -1,0 +1,57 @@
+name: .NET Core Release
+
+on:
+  push:
+    tags:
+      - "*.*.*"
+env:
+  DOTNET_VERSION: '9.0.x' # The .NET SDK version to use
+  BUILD_DIR: 'SekaiTools'
+  PROJECT_NAME: 'SekaiToolsGUI'
+
+jobs:
+  build:
+    name: build-${{matrix.os}}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ windows-latest ]
+
+    steps:
+      - name: Get version
+        id: get_version
+        run: |
+          $version = $env:GITHUB_REF -replace 'refs/tags/', ''
+          echo "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
+
+      - name: Echo Version
+        run: |
+          echo $env:GITHUB_REF
+          echo ${{ env.VERSION }}
+
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Dotnet Build
+        run: |
+          dotnet restore ${{ env.PROJECT_NAME }}
+          dotnet publish ${{ env.PROJECT_NAME }} -c Release --no-restore -o ${{ env.BUILD_DIR }}
+
+      - name: Zip the Build
+        run: 7z a SekaiTools-${{ env.VERSION }}.7z ${{ env.BUILD_DIR }}/*
+
+      - name: Create Release and Upload Release Asset
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          tag_name: ${{ github.ref }}
+          name: Release ${{ env.VERSION }}
+          body: Release ${{ env.VERSION }}
+          draft: false
+          prerelease: false
+          files: |
+            SekaiTools-${{ env.VERSION }}.7z

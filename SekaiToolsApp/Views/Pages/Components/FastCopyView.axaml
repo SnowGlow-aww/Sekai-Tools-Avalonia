@@ -1,0 +1,46 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="160" d:DesignHeight="480"
+             x:Class="SekaiToolsApp.Views.Pages.Components.FastCopyView">
+    <Border BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="4" Padding="6">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="4">
+                <TextBlock Text="特殊字符" HorizontalAlignment="Center" FontWeight="SemiBold" FontSize="13"/>
+
+                <Border Name="CopyStatusHost"
+                        IsVisible="False"
+                        Background="{DynamicResource ControlAltFillColorTertiaryBrush}"
+                        BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="4" Padding="4,3">
+                    <TextBlock Name="CopyStatusText"
+                               TextAlignment="Center"
+                               FontSize="11"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource SystemAccentColor}"
+                               TextWrapping="Wrap"/>
+                </Border>
+
+                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+                    <Button Grid.Row="0" Grid.Column="0" Content="【】" Click="OnSpecialCharClicked" Margin="2" HorizontalAlignment="Stretch"/>
+                    <Button Grid.Row="0" Grid.Column="1" Content="「」" Click="OnSpecialCharClicked" Margin="2" HorizontalAlignment="Stretch"/>
+                    <Button Grid.Row="1" Grid.Column="0" Content="『』" Click="OnSpecialCharClicked" Margin="2" HorizontalAlignment="Stretch"/>
+                    <Button Grid.Row="1" Grid.Column="1" Content="《》" Click="OnSpecialCharClicked" Margin="2" HorizontalAlignment="Stretch"/>
+                    <Button Grid.Row="2" Grid.Column="0" Content="（）" Click="OnSpecialCharClicked" Margin="2" HorizontalAlignment="Stretch"/>
+                    <Button Grid.Row="2" Grid.Column="1" Content="“”" Click="OnSpecialCharClicked" Margin="2" HorizontalAlignment="Stretch"/>
+                    <Button Grid.Row="3" Grid.Column="0" Content="~" Click="OnSpecialCharClicked" Margin="2" HorizontalAlignment="Stretch"/>
+                    <Button Grid.Row="3" Grid.Column="1" Content="♪" Click="OnSpecialCharClicked" Margin="2" HorizontalAlignment="Stretch"/>
+                    <Button Grid.Row="4" Grid.Column="0" Content="☆" Click="OnSpecialCharClicked" Margin="2" HorizontalAlignment="Stretch"/>
+                    <Button Grid.Row="4" Grid.Column="1" Content="——" Click="OnSpecialCharClicked" Margin="2" HorizontalAlignment="Stretch"/>
+                </Grid>
+
+                <Border Height="1" Background="{DynamicResource DividerStrokeColorDefaultBrush}" Margin="0,4"/>
+
+                <Button Content="添加自定义" Click="OnAddCustomClicked"
+                        HorizontalAlignment="Stretch"/>
+
+                <StackPanel Name="CustomCharsPanel" Spacing="2"/>
+            </StackPanel>
+        </ScrollViewer>
+    </Border>
+</UserControl>

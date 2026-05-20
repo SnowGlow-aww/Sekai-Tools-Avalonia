@@ -1,0 +1,25 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SekaiToolsApp.ViewModels.LineCards"
+             mc:Ignorable="d" d:DesignWidth="500"
+             x:DataType="vm:BannerLineCardViewModel"
+             x:Class="SekaiToolsApp.Views.Pages.Components.BannerLineCard"
+             HorizontalAlignment="Stretch"
+             Margin="5,5,10,5">
+    <Border BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="4" Padding="8"
+            Background="{DynamicResource SolidBackgroundFillColorBaseBrush}">
+        <Grid ColumnDefinitions="Auto,*,Auto">
+            <TextBlock Grid.Column="0" Text="{Binding StartTime}"
+                       FontFamily="Consolas,monospace" Opacity="0.75"/>
+            <TextBlock Grid.Column="1" HorizontalAlignment="Center"
+                       Text="{Binding DisplayContent}"
+                       FontWeight="SemiBold"
+                       TextWrapping="Wrap"
+                       ToolTip.Tip="{Binding OriginalContent}"/>
+            <TextBlock Grid.Column="2" Text="{Binding EndTime}"
+                       FontFamily="Consolas,monospace" Opacity="0.75"/>
+        </Grid>
+    </Border>
+</UserControl>

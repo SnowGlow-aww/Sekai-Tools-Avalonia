@@ -1,0 +1,229 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SekaiToolsApp.ViewModels"
+             mc:Ignorable="d"
+             d:DesignWidth="900" d:DesignHeight="700"
+             x:Class="SekaiToolsApp.Views.Pages.SettingPageView"
+             x:DataType="vm:SettingPageViewModel">
+
+    <Grid RowDefinitions="*,Auto">
+        <ScrollViewer Grid.Row="0" Padding="24,16,40,16">
+            <StackPanel Spacing="10" MaxWidth="900" HorizontalAlignment="Stretch">
+
+                <Border BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        Padding="16">
+                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto">
+                        <TextBlock Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Text="◐" FontSize="22" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="主题" FontWeight="SemiBold"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="选择应用配色主题" FontSize="12" Opacity="0.7"/>
+                        <ListBox Grid.Row="2" Grid.Column="1" Margin="0,12,0,0"
+                                 SelectedIndex="{Binding CurrentApplicationTheme, Mode=TwoWay}">
+                            <ListBox.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal"/>
+                                </ItemsPanelTemplate>
+                            </ListBox.ItemsPanel>
+                            <ListBoxItem>跟随系统</ListBoxItem>
+                            <ListBoxItem>浅色</ListBoxItem>
+                            <ListBoxItem>深色</ListBoxItem>
+                        </ListBox>
+                    </Grid>
+                </Border>
+
+                <Border BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        Padding="16">
+                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+                        <TextBlock Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Text="◎" FontSize="22" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="代理" FontWeight="SemiBold"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="下载剧本时所用的代理" FontSize="12" Opacity="0.7"/>
+
+                        <ListBox Grid.Row="2" Grid.Column="1" Margin="0,4,0,0"
+                                 SelectedIndex="{Binding ProxyType, Mode=TwoWay}">
+                            <ListBox.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal"/>
+                                </ItemsPanelTemplate>
+                            </ListBox.ItemsPanel>
+                            <ListBoxItem ToolTip.Tip="跟随系统代理（Windows 用 IE/WinHTTP 设置，Linux/macOS 读 http_proxy 等环境变量）">系统默认</ListBoxItem>
+                            <ListBoxItem>http://</ListBoxItem>
+                            <ListBoxItem>socks5://</ListBoxItem>
+                        </ListBox>
+
+                        <StackPanel Grid.Row="3" Grid.Column="1" Spacing="4" IsVisible="{Binding ProxyChangeable}">
+                            <TextBox Text="{Binding ProxyHost, Mode=TwoWay}" Watermark="127.0.0.1"/>
+                            <TextBlock Text="主机地址" FontSize="12" Opacity="0.7"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="4" Grid.Column="1" Spacing="4" IsVisible="{Binding ProxyChangeable}">
+                            <Grid ColumnDefinitions="40,200,40">
+                                <Button Grid.Column="0" Content="-" Command="{Binding DecrementProxyPortCommand}"/>
+                                <TextBox Grid.Column="1" Text="{Binding ProxyPortText, Mode=TwoWay}"/>
+                                <Button Grid.Column="2" Content="+" Command="{Binding IncrementProxyPortCommand}"/>
+                            </Grid>
+                            <TextBlock Text="端口" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="{Binding ProxyPortError}" FontSize="12" Foreground="Red" IsVisible="{Binding HasProxyPortError}"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <Border BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        Padding="16">
+                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto">
+                        <TextBlock Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Text="↓" FontSize="22" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="下载目录" FontWeight="SemiBold"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="下载剧本时会保存到这个目录" FontSize="12" Opacity="0.7"/>
+
+                        <Grid Grid.Row="2" Grid.Column="1" ColumnDefinitions="*,Auto" Margin="0,10,0,0">
+                            <TextBox Grid.Column="0" Text="{Binding DownloadDirectory, Mode=TwoWay}" Watermark="例如：/home/user/SekaiTools/Scripts"/>
+                            <Button Grid.Column="1" Content="选择..." Click="OnBrowseDownloadDirectory" Margin="8,0,0,0"/>
+                        </Grid>
+                    </Grid>
+                </Border>
+
+                <Border BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        Padding="16">
+                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto">
+                        <TextBlock Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Text="▶" FontSize="22" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="压制工具" FontWeight="SemiBold"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="留空时会自动从系统 PATH / 应用目录查找 ffmpeg" FontSize="12" Opacity="0.7"/>
+
+                        <Grid Grid.Row="2" Grid.Column="1" ColumnDefinitions="*,Auto" Margin="0,10,0,0">
+                            <TextBox Grid.Column="0" Text="{Binding FfmpegPath, Mode=TwoWay}" Watermark="例如：/usr/bin/ffmpeg"/>
+                            <Button Grid.Column="1" Content="选择..." Click="OnBrowseFfmpegPath" Margin="8,0,0,0"/>
+                        </Grid>
+                    </Grid>
+                </Border>
+
+                <Border BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        Padding="16">
+                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto">
+                        <TextBlock Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Text="A" FontSize="22" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="打字机设置" FontWeight="SemiBold"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="设置打字机的渐变时间参数" FontSize="12" Opacity="0.7"/>
+
+                        <StackPanel Grid.Row="2" Grid.Column="1" Spacing="4">
+                            <Grid ColumnDefinitions="40,200,40">
+                                <Button Grid.Column="0" Content="-" Command="{Binding DecrementTypewriterCharTimeCommand}"/>
+                                <TextBox Grid.Column="1" Text="{Binding TypewriterCharTimeText, Mode=TwoWay}"/>
+                                <Button Grid.Column="2" Content="+" Command="{Binding IncrementTypewriterCharTimeCommand}"/>
+                            </Grid>
+                            <TextBlock Text="单字时间 (ms)" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="{Binding TypewriterCharTimeError}" FontSize="12" Foreground="Red" IsVisible="{Binding HasTypewriterCharTimeError}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="3" Grid.Column="1" Spacing="4">
+                            <Grid ColumnDefinitions="40,200,40">
+                                <Button Grid.Column="0" Content="-" Command="{Binding DecrementTypewriterFadeTimeCommand}"/>
+                                <TextBox Grid.Column="1" Text="{Binding TypewriterFadeTimeText, Mode=TwoWay}"/>
+                                <Button Grid.Column="2" Content="+" Command="{Binding IncrementTypewriterFadeTimeCommand}"/>
+                            </Grid>
+                            <TextBlock Text="渐变时间 (ms)" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="{Binding TypewriterFadeTimeError}" FontSize="12" Foreground="Red" IsVisible="{Binding HasTypewriterFadeTimeError}"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <Border BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        Padding="16">
+                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+                        <TextBlock Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Text="A" FontSize="22" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="字体自定义" FontWeight="SemiBold"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="选择字幕样式所用的字体" FontSize="12" Opacity="0.7"/>
+
+                        <Grid Grid.Row="2" Grid.Column="1" ColumnDefinitions="120,240,Auto">
+                            <TextBlock Grid.Column="0" Text="对话字体" VerticalAlignment="Center"/>
+                            <TextBox Grid.Column="1" Text="{Binding DialogFontFamily, Mode=TwoWay}"/>
+                            <Button Grid.Column="2" Content="选择..." Click="OnPickDialogFont"/>
+                        </Grid>
+                        <Grid Grid.Row="3" Grid.Column="1" ColumnDefinitions="120,240,Auto">
+                            <TextBlock Grid.Column="0" Text="横幅字体" VerticalAlignment="Center"/>
+                            <TextBox Grid.Column="1" Text="{Binding BannerFontFamily, Mode=TwoWay}"/>
+                            <Button Grid.Column="2" Content="选择..." Click="OnPickBannerFont"/>
+                        </Grid>
+                        <Grid Grid.Row="4" Grid.Column="1" ColumnDefinitions="120,240,Auto">
+                            <TextBlock Grid.Column="0" Text="地点角标字体" VerticalAlignment="Center"/>
+                            <TextBox Grid.Column="1" Text="{Binding MarkerFontFamily, Mode=TwoWay}"/>
+                            <Button Grid.Column="2" Content="选择..." Click="OnPickMarkerFont"/>
+                        </Grid>
+                    </Grid>
+                </Border>
+
+                <Border BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        Padding="16">
+                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
+                        <TextBlock Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Text="□" FontSize="22" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="输出注释" FontWeight="SemiBold"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="选择字幕输出的类别" FontSize="12" Opacity="0.7"/>
+                        <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Spacing="16">
+                            <TextBlock Text="对话" Width="80" VerticalAlignment="Center"/>
+                            <CheckBox Content="一行" IsChecked="{Binding ExportLine1, Mode=TwoWay}"/>
+                            <CheckBox Content="二行" IsChecked="{Binding ExportLine2, Mode=TwoWay}"/>
+                            <CheckBox Content="三行" IsChecked="{Binding ExportLine3, Mode=TwoWay}"/>
+                            <CheckBox Content="姓名" IsChecked="{Binding ExportCharacter, Mode=TwoWay}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Spacing="16">
+                            <TextBlock Text="横幅" Width="80" VerticalAlignment="Center"/>
+                            <CheckBox Content="遮罩" IsChecked="{Binding ExportBannerMask, Mode=TwoWay}"/>
+                            <CheckBox Content="内容" IsChecked="{Binding ExportBannerText, Mode=TwoWay}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" Spacing="16">
+                            <TextBlock Text="地点角标" Width="80" VerticalAlignment="Center"/>
+                            <CheckBox Content="遮罩" IsChecked="{Binding ExportMarkerMask, Mode=TwoWay}"/>
+                            <CheckBox Content="内容" IsChecked="{Binding ExportMarkerText, Mode=TwoWay}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal" Spacing="16">
+                            <TextBlock Text="其他" Width="80" VerticalAlignment="Center"/>
+                            <CheckBox Content="屏幕注释" IsChecked="{Binding ExportScreenComment, Mode=TwoWay}"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <Border BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        Padding="16">
+                    <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto">
+                        <TextBlock Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Text="●" FontSize="22" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="Sekai Tools" FontWeight="SemiBold"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="© 2024 PJS字幕组 | Icexbb 以 AGPL-3.0 协议开源" FontSize="12" Opacity="0.7"/>
+                        <TextBlock Grid.Row="0" Grid.RowSpan="2" Grid.Column="2" Text="{Binding AppVersion}" Opacity="0.7" VerticalAlignment="Center"/>
+                        <HyperlinkButton Grid.Row="2" Grid.Column="1" Content="github.com/Icexbb/SekaiTools" NavigateUri="https://github.com/Icexbb/SekaiTools" HorizontalAlignment="Left"/>
+                    </Grid>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <Border Grid.Row="1"
+                BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                BorderThickness="0,1,0,0"
+                Padding="16,8">
+            <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding SaveStatusMessage}" Foreground="Red" IsVisible="{Binding SaveStatusIsError}"/>
+                    <TextBlock Text="{Binding SaveStatusMessage}" Foreground="Green" IsVisible="{Binding SaveStatusIsSuccess}"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                    <Button Content="重置为默认" Command="{Binding ResetToDefaultCommand}" Width="120"/>
+                    <Button Content="保存" Command="{Binding SaveCommand}" Width="120" Classes="accent"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

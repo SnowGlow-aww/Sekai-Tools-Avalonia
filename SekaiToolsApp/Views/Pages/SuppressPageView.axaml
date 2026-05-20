@@ -1,0 +1,184 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SekaiToolsApp.ViewModels"
+             mc:Ignorable="d"
+             d:DesignWidth="800" d:DesignHeight="640"
+             x:Class="SekaiToolsApp.Views.Pages.SuppressPageView"
+             x:DataType="vm:SuppressPageViewModel">
+    <Grid>
+        <Grid Margin="12" RowDefinitions="Auto,Auto,*,Auto">
+
+            <!-- 文件选择区 -->
+            <StackPanel Grid.Row="0" Spacing="6">
+                <Border BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="12">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                            <TextBlock Text="视频文件" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding SourceVideo}" FontSize="12" Opacity="0.7"
+                                       TextTrimming="CharacterEllipsis"
+                                       IsVisible="{Binding HasSourceVideo}"/>
+                            <TextBlock Text="未选择" FontSize="12" Opacity="0.5"
+                                       IsVisible="{Binding !HasSourceVideo}"/>
+                        </StackPanel>
+                        <Button Grid.Column="1" Content="浏览" Click="OnBrowseVideoClicked"
+                                IsEnabled="{Binding HasNotStarted}"/>
+                    </Grid>
+                </Border>
+
+                <!-- 字幕文件：仅在已选视频后展示，与原 WPF 一致 -->
+                <Border BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="12"
+                        IsVisible="{Binding HasSourceVideo}">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                            <TextBlock Text="字幕文件" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding SourceSubtitle}" FontSize="12" Opacity="0.7"
+                                       TextTrimming="CharacterEllipsis"
+                                       IsVisible="{Binding HasSourceSubtitle}"/>
+                            <TextBlock Text="未选择 (可空)" FontSize="12" Opacity="0.5"
+                                       IsVisible="{Binding !HasSourceSubtitle}"/>
+                        </StackPanel>
+                        <Button Grid.Column="1" Content="浏览" Click="OnBrowseSubtitleClicked"
+                                IsEnabled="{Binding HasNotStarted}"/>
+                    </Grid>
+                </Border>
+
+                <Border BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="12"
+                        IsVisible="{Binding HasSourceVideo}">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                            <TextBlock Text="输出路径" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding OutputPath}" FontSize="12" Opacity="0.7"
+                                       TextTrimming="CharacterEllipsis"
+                                       IsVisible="{Binding HasOutputPath}"/>
+                            <TextBlock Text="未选择" FontSize="12" Opacity="0.5"
+                                       IsVisible="{Binding !HasOutputPath}"/>
+                        </StackPanel>
+                        <Button Grid.Column="1" Content="浏览" Click="OnBrowseOutputClicked"
+                                IsEnabled="{Binding HasNotStarted}"/>
+                    </Grid>
+                </Border>
+
+                <!-- CRF 与最佳参数：未启动时可改 -->
+                <Border BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="12"
+                        IsVisible="{Binding HasNotStarted}">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                            <TextBlock Text="固定码率因子 (CRF)" FontWeight="SemiBold"/>
+                            <TextBlock Text="压制时使用的 Crf，数值越低质量越高、文件越大"
+                                       FontSize="12" Opacity="0.7"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center"
+                                    Spacing="8">
+                            <TextBlock Text="{Binding SuppressCrf}" VerticalAlignment="Center"
+                                       MinWidth="22" TextAlignment="Right"/>
+                            <Slider Width="160" Minimum="0" Maximum="51" IsSnapToTickEnabled="True"
+                                    TickFrequency="1"
+                                    Value="{Binding SuppressCrf, Mode=TwoWay}"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <Border BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="12"
+                        IsVisible="{Binding HasNotStarted}">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                            <TextBlock Text="使用最佳参数" FontWeight="SemiBold"/>
+                            <TextBlock Text="启用后压制速度较慢，但视频质量更高"
+                                       FontSize="12" Opacity="0.7"/>
+                        </StackPanel>
+                        <ToggleSwitch Grid.Column="1" IsChecked="{Binding UseComplexConfig}"
+                                      VerticalAlignment="Center"/>
+                    </Grid>
+                </Border>
+            </StackPanel>
+
+            <!-- 状态/控制 -->
+            <Border Grid.Row="1"
+                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,8,0,0">
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding RunStateText}" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding StopReasonText}" VerticalAlignment="Center" Opacity="0.7"
+                                   IsVisible="{Binding HasStopReasonText}"/>
+                        <TextBlock Text="{Binding FpsText}" VerticalAlignment="Center" Opacity="0.7"
+                                   IsVisible="{Binding HasFpsText}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+                        <Button Content="重置" Click="OnResetClicked" IsEnabled="{Binding CanReset}"/>
+                        <Button Content="停止" Click="OnStopClicked" IsEnabled="{Binding CanStop}"/>
+                        <Button Content="开始压制" Click="OnStartClicked"
+                                IsEnabled="{Binding CanStart}" Classes="accent"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- 日志区：未开始时空白；开始后显示压制后端输出 -->
+            <Border Grid.Row="2"
+                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="4" Margin="0,8,0,0">
+                <Grid>
+                    <TextBox Name="StatusBox"
+                             IsReadOnly="True"
+                             AcceptsReturn="True"
+                             TextWrapping="Wrap"
+                             Text="{Binding Status, Mode=OneWay}"
+                             VerticalAlignment="Stretch"
+                             HorizontalAlignment="Stretch"
+                             FontFamily="Consolas, Menlo, monospace"
+                             FontSize="12"
+                             IsVisible="{Binding !HasNotStarted}"/>
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6"
+                                IsVisible="{Binding HasNotStarted}">
+                        <TextBlock HorizontalAlignment="Center" FontWeight="SemiBold" Text="压制日志"/>
+                        <TextBlock HorizontalAlignment="Center" Opacity="0.7" TextWrapping="Wrap"
+                                   TextAlignment="Center" MaxWidth="360"
+                                   Text="开始压制后，压制后端的输出会实时显示在这里。"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- 进度 + 完成后辅助按钮 -->
+            <Border Grid.Row="3"
+                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,8,0,0">
+                <StackPanel Spacing="8">
+                    <ProgressBar Minimum="0" Maximum="1" Value="{Binding Progress}"
+                                 IsIndeterminate="{Binding HasNotStarted}" Height="6"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8"
+                                IsVisible="{Binding !HasNotStarted}">
+                        <Button Content="清除任务" Click="OnClearClicked"
+                                IsEnabled="{Binding !IsRunning}"/>
+                        <Button Content="显示输出" Click="OnShowOutputClicked"
+                                IsVisible="{Binding CanShowOutput}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- 压制环境引导 / 平台不支持覆盖层 -->
+        <Border Background="#CC000000"
+                IsVisible="{Binding IsResourceNotReady}">
+            <Border HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
+                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="24" MinWidth="380">
+                <StackPanel Spacing="12" HorizontalAlignment="Stretch">
+                    <TextBlock FontWeight="SemiBold" FontSize="16" HorizontalAlignment="Center"
+                               Text="准备压制环境"/>
+                    <TextBlock HorizontalAlignment="Center" TextAlignment="Center"
+                               TextWrapping="Wrap" MaxWidth="340"
+                               Text="{Binding ResourceStatusText}"/>
+                    <ProgressBar IsIndeterminate="True" Height="4"
+                                 IsVisible="{Binding IsResourceChecking}"/>
+                    <Button Content="开始使用" HorizontalAlignment="Center"
+                            Click="OnDismissResourceOverlayClicked"
+                            IsVisible="{Binding IsResourceReady}"
+                            Classes="accent"/>
+                    <Button Content="重试" HorizontalAlignment="Center"
+                            Click="OnRetryResourceClicked"
+                            IsVisible="{Binding IsResourceFailed}"
+                            Classes="accent"/>
+                </StackPanel>
+            </Border>
+        </Border>
+    </Grid>
+</UserControl>

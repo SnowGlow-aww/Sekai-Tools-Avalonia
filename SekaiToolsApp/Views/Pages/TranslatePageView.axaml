@@ -1,0 +1,242 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SekaiToolsPlatform.ViewModels"
+             xmlns:models="using:SekaiToolsPlatform.Models"
+             xmlns:conv="using:SekaiToolsApp.Converters"
+             xmlns:components="using:SekaiToolsApp.Views.Pages.Components"
+             mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="720"
+             x:Class="SekaiToolsApp.Views.Pages.TranslatePageView"
+             x:DataType="vm:TranslatePageModel">
+
+    <UserControl.DataTemplates>
+        <DataTemplate DataType="vm:LineDialogModel">
+            <components:TranslateLineDialogView/>
+        </DataTemplate>
+        <DataTemplate DataType="vm:LineEffectModel">
+            <components:TranslateLineEffectView/>
+        </DataTemplate>
+    </UserControl.DataTemplates>
+
+    <Grid Margin="8" RowDefinitions="Auto,Auto,*">
+
+        <!-- 顶部参数面板：会话 / 平台剧情 / 本地兼容 / 控制条 -->
+        <ScrollViewer Grid.Row="0" MaxHeight="500" MinHeight="100" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Spacing="8">
+
+                <!-- SekaiPlatform 会话面板 -->
+                <Border BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="10">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="SekaiPlatform" FontWeight="Bold" FontSize="16"/>
+                        <Grid ColumnDefinitions="110,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="平台地址" VerticalAlignment="Center"/>
+                            <TextBox Grid.Row="0" Grid.Column="1"
+                                     Text="{Binding BaseUrl, Mode=TwoWay}"
+                                     Watermark="http://localhost:8080"/>
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="用户名" VerticalAlignment="Center"/>
+                            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Username, Mode=TwoWay}"/>
+
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="密码" VerticalAlignment="Center"/>
+                            <TextBox Grid.Row="2" Grid.Column="1"
+                                     Text="{Binding Password, Mode=TwoWay}"
+                                     PasswordChar="●"/>
+
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="当前会话" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding SessionText}" VerticalAlignment="Center"/>
+
+                            <TextBlock Grid.Row="4" Grid.Column="0" Text="当前租户" VerticalAlignment="Center"/>
+                            <ComboBox Grid.Row="4" Grid.Column="1"
+                                      PlaceholderText="选择租户"
+                                      ItemsSource="{Binding Tenants}"
+                                      SelectedItem="{Binding SelectedTenant, Mode=TwoWay}"
+                                      HorizontalAlignment="Stretch">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate x:DataType="models:PlatformTenant">
+                                        <TextBlock Text="{Binding Name}"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </Grid>
+
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <Button Content="登录" Click="OnPlatformLoginClicked"/>
+                            <Button Content="刷新会话" Click="OnRefreshSessionClicked"/>
+                            <Button Content="切换租户" Click="OnSwitchTenantClicked"
+                                    IsEnabled="{Binding HasSelectedTenant}"/>
+                            <Button Content="登出" Click="OnPlatformLogoutClicked"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- 平台剧情面板 -->
+                <Border BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="10">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="平台剧情" FontWeight="Bold" FontSize="16"/>
+                        <Grid ColumnDefinitions="110,*" RowDefinitions="Auto,Auto,Auto,Auto">
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="剧情类型" VerticalAlignment="Center"/>
+                            <ComboBox Grid.Row="0" Grid.Column="1"
+                                      PlaceholderText="选择剧情类型"
+                                      ItemsSource="{Binding StoryTypes}"
+                                      SelectedItem="{Binding SelectedStoryType, Mode=TwoWay}"
+                                      HorizontalAlignment="Stretch"/>
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="剧情集" VerticalAlignment="Center"/>
+                            <ComboBox Grid.Row="1" Grid.Column="1"
+                                      PlaceholderText="选择剧情集"
+                                      ItemsSource="{Binding StoryGroups}"
+                                      SelectedItem="{Binding SelectedStoryGroup, Mode=TwoWay}"
+                                      SelectionChanged="OnStoryGroupChanged"
+                                      HorizontalAlignment="Stretch">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate x:DataType="models:PlatformStoryGroup">
+                                        <TextBlock Text="{Binding DisplayLabel}"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="剧情" VerticalAlignment="Center"/>
+                            <ComboBox Grid.Row="2" Grid.Column="1"
+                                      PlaceholderText="选择剧情"
+                                      ItemsSource="{Binding Stories}"
+                                      SelectedItem="{Binding SelectedStory, Mode=TwoWay}"
+                                      SelectionChanged="OnStoryChanged"
+                                      HorizontalAlignment="Stretch">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate x:DataType="models:PlatformStory">
+                                        <TextBlock Text="{Binding DisplayLabel}"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="平台版本" VerticalAlignment="Center"/>
+                            <ComboBox Grid.Row="3" Grid.Column="1"
+                                      PlaceholderText="选择译文版本"
+                                      ItemsSource="{Binding TranslationVersions}"
+                                      SelectedItem="{Binding SelectedTranslationVersion, Mode=TwoWay}"
+                                      HorizontalAlignment="Stretch">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate x:DataType="models:PlatformTranslationVersion">
+                                        <TextBlock Text="{Binding DisplayLabel}"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </Grid>
+
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <Button Content="刷新类型" Click="OnRefreshStoryTypesClicked"/>
+                            <Button Content="加载剧情集" Click="OnLoadStoryGroupsClicked"
+                                    IsEnabled="{Binding HasSelectedStoryType}"/>
+                            <Button Content="加载剧情" Click="OnLoadPlatformStoryClicked"
+                                    IsEnabled="{Binding HasSelectedStory}"/>
+                            <Button Content="载入平台译文" Click="OnLoadPlatformTranslationClicked"
+                                    IsEnabled="{Binding HasSelectedTranslationVersion}"/>
+                            <Button Content="载入平台对照" Click="OnLoadPlatformReferenceClicked"
+                                    IsEnabled="{Binding HasSelectedTranslationVersion}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- 本地兼容模式 -->
+                <Border BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="10">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="本地兼容模式" FontWeight="Bold" FontSize="16"/>
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <Button Content="载入剧本" Click="OnLoadScriptClicked"/>
+                            <Button Name="LoadTranslationButton" Content="打开翻译" Click="OnLoadTranslationClicked" IsVisible="False"/>
+                            <Button Name="LoadReviewButton" Content="打开对照翻译" Click="OnLoadReviewClicked" IsVisible="False"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- 控制条：当前文档 / 模式 / 重置 / 保存 / 上传 -->
+                <Border BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="10">
+                    <Grid ColumnDefinitions="110,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="当前文档" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding CurrentDocumentTitle}" VerticalAlignment="Center"/>
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="当前模式" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ModeText}" VerticalAlignment="Center"/>
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="工作区状态" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="2" Grid.Column="1"
+                                   Text="{Binding WorkspaceStatusText}"
+                                   VerticalAlignment="Center"
+                                   Foreground="{Binding IsWorkspaceDirty, Converter={x:Static conv:BoolToWarningBrushConverter.Instance}}"/>
+
+                        <CheckBox Grid.Row="3" Grid.Column="1"
+                                  Content="显示对照差异"
+                                  IsChecked="{Binding ShowReferenceDiff, Mode=TwoWay}"
+                                  IsEnabled="{Binding HasEvents}"
+                                  VerticalAlignment="Center"/>
+
+                        <StackPanel Grid.Row="4" Grid.ColumnSpan="2"
+                                    Orientation="Horizontal" Spacing="6"
+                                    HorizontalAlignment="Right">
+                            <Button Content="重置" Click="OnResetClicked"/>
+                            <Button Content="保存到本地" Click="OnSaveClicked"/>
+                            <Button Content="上传到平台" Click="OnUploadClicked"
+                                    IsEnabled="{Binding CanUploadToPlatform}"
+                                    Classes="accent"/>
+                        </StackPanel>
+
+                        <TextBlock Grid.Row="5" Grid.ColumnSpan="2"
+                                   Text="{Binding NavigationPathText}"
+                                   Margin="0,8,0,0"
+                                   FontSize="11"
+                                   Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                   TextWrapping="Wrap"/>
+                    </Grid>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- 上下可拖拽分割线 -->
+        <GridSplitter Grid.Row="1" Height="8" Background="Transparent"
+                      ResizeDirection="Rows" HorizontalAlignment="Stretch">
+            <GridSplitter.Template>
+                <ControlTemplate>
+                    <Border Background="Transparent" Height="8" Cursor="SizeNorthSouth">
+                        <Border Height="1" VerticalAlignment="Center"
+                                Background="{DynamicResource ControlStrokeColorDefaultBrush}"
+                                Margin="12,0"/>
+                    </Border>
+                </ControlTemplate>
+            </GridSplitter.Template>
+        </GridSplitter>
+
+        <!-- 行列表区：左 FastCopy 侧栏 / 可拖拽分割线 / 右行列表 -->
+        <Grid Grid.Row="2" ColumnDefinitions="160,Auto,*" Margin="0,0,0,0">
+            <components:FastCopyView Grid.Column="0" Margin="0,0,4,0" MinWidth="120" MaxWidth="300"/>
+
+            <GridSplitter Grid.Column="1" Width="8" Background="Transparent"
+                          ResizeDirection="Columns">
+                <GridSplitter.Template>
+                    <ControlTemplate>
+                        <Border Background="Transparent" Width="8" Cursor="SizeWestEast">
+                            <Border Width="1" HorizontalAlignment="Center"
+                                    Background="{DynamicResource ControlStrokeColorDefaultBrush}"
+                                    Margin="0,4"/>
+                        </Border>
+                    </ControlTemplate>
+                </GridSplitter.Template>
+            </GridSplitter>
+
+            <Grid Grid.Column="2">
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"
+                              IsVisible="{Binding HasEvents}">
+                    <ItemsControl ItemsSource="{Binding Events}"/>
+                </ScrollViewer>
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12"
+                            IsVisible="{Binding IsEmpty}">
+                    <TextBlock Text="📄" FontSize="48" HorizontalAlignment="Center"/>
+                    <TextBlock Text="请先从 SekaiPlatform 或本地文件载入剧情"
+                               FontSize="16"
+                               HorizontalAlignment="Center"
+                               Foreground="{DynamicResource TextFillColorTertiaryBrush}"/>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

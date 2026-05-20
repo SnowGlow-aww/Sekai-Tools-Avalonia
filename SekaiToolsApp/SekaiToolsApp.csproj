@@ -1,0 +1,57 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <!-- Avalonia 桌面应用，作为 SekaiTools 唯一 UI 入口。
+             目标 net8.0：与共享库一致，可在 Windows + macOS 编译运行。 -->
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RootNamespace>SekaiToolsApp</RootNamespace>
+        <ApplicationManifest>app.manifest</ApplicationManifest>
+        <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+        <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+        <Configurations>Debug;Release</Configurations>
+        <Platforms>AnyCPU;x64</Platforms>
+        <UseAppHost>true</UseAppHost>
+        <RuntimeIdentifiers>win-x64;osx-x64;osx-arm64</RuntimeIdentifiers>
+        <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
+        <NoWarn>$(NoWarn);CA1416</NoWarn>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <!-- 当前 SDK 下 app 的项目引用图并行恢复/清理会失败，先关掉并行保证稳定。 -->
+        <BuildInParallel>false</BuildInParallel>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+        <DefineConstants>$(DefineConstants);DEBUG;TRACE</DefineConstants>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <AvaloniaResource Include="Assets\**" />
+        <Content Include="Resources\lim5994.vpy" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+        <!-- 共享 WPF 项目里的角色头像和团 logo：通过 Link 把它们嵌到 avares://SekaiToolsApp/Assets/...
+             下，避免重复维护图片资源。URL 形如 avares://SekaiToolsApp/Assets/Characters/chr_1.png。 -->
+        <AvaloniaResource Include="..\SekaiToolsGUI\Resource\Characters\*.png" Link="Assets\Characters\%(Filename)%(Extension)" />
+        <AvaloniaResource Include="..\SekaiToolsGUI\Resource\Unit\*.png" Link="Assets\Unit\%(Filename)%(Extension)" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Avalonia" Version="11.2.3" />
+        <PackageReference Include="Avalonia.Desktop" Version="11.2.3" />
+        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.3" />
+        <PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.3" />
+        <PackageReference Include="Avalonia.ReactiveUI" Version="11.2.3" />
+        <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.2.3" />
+        <PackageReference Include="FluentAvaloniaUI" Version="2.2.0" />
+        <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\SekaiToolsCore\SekaiToolsCore.csproj" />
+        <ProjectReference Include="..\SekaiToolsBase\SekaiToolsBase.csproj" />
+        <ProjectReference Include="..\SekaiDataFetch\SekaiDataFetch.csproj" />
+        <ProjectReference Include="..\SekaiToolsPlatform\SekaiToolsPlatform.csproj" />
+    </ItemGroup>
+
+</Project>

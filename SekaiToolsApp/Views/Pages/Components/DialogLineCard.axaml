@@ -1,0 +1,85 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SekaiToolsApp.ViewModels.LineCards"
+             xmlns:ui="using:FluentAvalonia.UI.Controls"
+             mc:Ignorable="d" d:DesignWidth="500"
+             x:DataType="vm:DialogLineCardViewModel"
+             x:Class="SekaiToolsApp.Views.Pages.Components.DialogLineCard"
+             HorizontalAlignment="Stretch"
+             Margin="5,5,10,5">
+    <Border BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="4" Padding="8"
+            Background="{DynamicResource SolidBackgroundFillColorBaseBrush}">
+        <StackPanel Spacing="4">
+            <!-- 顶栏：起止时间 + 角色名（角色名鼠标悬停显示原名） -->
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <TextBlock Grid.Column="0" Text="{Binding StartTime}"
+                           FontFamily="Consolas,monospace" Opacity="0.75"/>
+                <TextBlock Grid.Column="1" HorizontalAlignment="Center"
+                           Text="{Binding CharacterDisplay}" FontWeight="SemiBold"
+                           ToolTip.Tip="{Binding CharacterOriginal}"/>
+                <TextBlock Grid.Column="2" Text="{Binding EndTime}"
+                           FontFamily="Consolas,monospace" Opacity="0.75"/>
+            </Grid>
+
+            <!-- 内容卡 -->
+            <Border BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="4" Padding="6"
+                    DoubleTapped="OnContentDoubleTapped">
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Grid.Column="0" Margin="6"
+                               Text="{Binding TranslatedContent}"
+                               TextWrapping="Wrap"
+                               ToolTip.Tip="{Binding RawContent}"/>
+                    <ui:SymbolIcon Grid.Column="1" Symbol="Refresh"
+                                   Margin="6,0"
+                                   IsVisible="{Binding IsShaking}"
+                                   ToolTip.Tip="本行抖动"/>
+                </Grid>
+            </Border>
+
+            <!-- 长行分隔符面板：仅 UseSeparator=true 显示 -->
+            <StackPanel Spacing="6" IsVisible="{Binding UseSeparator}">
+                <Separator Margin="0,4"/>
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Grid.Column="0" Text="将文本分割为："/>
+                    <TextBlock Grid.Column="1" Text="*本行文本发生抖动*"
+                               IsVisible="{Binding IsShaking}" Opacity="0.7"/>
+                </Grid>
+                <TextBlock HorizontalAlignment="Center" TextAlignment="Center"
+                           TextWrapping="Wrap">
+                    <Run Text="{Binding ContentPart1}"/><Run Text=" / "/><Run Text="{Binding ContentPart2}"/>
+                </TextBlock>
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                    <TextBlock Grid.Column="0" Margin="5"
+                               Text="{Binding ContentPart1.Length}"/>
+                    <Slider Grid.Column="1" Minimum="1"
+                            VerticalAlignment="Center"
+                            Maximum="{Binding SeparatorContentIndexLimit}"
+                            Value="{Binding SeparatorContentIndex, Mode=TwoWay}"/>
+                    <TextBlock Grid.Column="2" Margin="5"
+                               Text="{Binding ContentPart2.Length}"/>
+                </Grid>
+
+                <Separator Margin="0,4"/>
+                <Grid ColumnDefinitions="*,*">
+                    <TextBlock Grid.Column="0">
+                        <Run Text="{Binding StartFrame}"/><Run Text=" =&gt; "/><Run Text="{Binding StartTime}"/>
+                    </TextBlock>
+                    <TextBlock Grid.Column="1" HorizontalAlignment="Right">
+                        <Run Text="{Binding EndFrame}"/><Run Text=" =&gt; "/><Run Text="{Binding EndTime}"/>
+                    </TextBlock>
+                </Grid>
+                <Slider Minimum="{Binding StartFrame}" Maximum="{Binding EndFrame}"
+                        Value="{Binding SeparateFrame, Mode=TwoWay}"/>
+                <TextBlock HorizontalAlignment="Center">
+                    <Run Text="在 "/><Run Text="{Binding SeparateFrame}"/><Run Text=" =&gt; "/><Run Text="{Binding SeparateTime}"/><Run Text=" 处换行"/>
+                </TextBlock>
+                <TextBlock HorizontalAlignment="Center"
+                           Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                           Text="{Binding PromptWarning}"
+                           IsVisible="{Binding HasPromptWarning}"/>
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</UserControl>

@@ -1,0 +1,218 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SekaiToolsApp.ViewModels"
+             xmlns:lineVm="using:SekaiToolsApp.ViewModels.LineCards"
+             xmlns:components="using:SekaiToolsApp.Views.Pages.Components"
+             mc:Ignorable="d"
+             d:DesignWidth="900" d:DesignHeight="700"
+             x:Class="SekaiToolsApp.Views.Pages.SubtitlePageView"
+             x:DataType="vm:SubtitlePageViewModel"
+             DragDrop.AllowDrop="True">
+    <Grid>
+      <Grid ColumnDefinitions="380,Auto,*">
+
+        <!-- 左列：文件选择 + 运行控制 + 进度 / 预览 -->
+        <Grid Grid.Column="0" RowDefinitions="Auto,Auto,*" Margin="12,12,4,12" MinWidth="250" MaxWidth="600">
+
+            <!-- 三个文件选择器 -->
+            <StackPanel Grid.Row="0" Spacing="6">
+                <Border BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="4" Padding="12">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                            <TextBlock Text="视频文件" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding VideoFilePath}" FontSize="12" Opacity="0.7"
+                                       TextTrimming="CharacterEllipsis"
+                                       IsVisible="{Binding HasVideoFilePath}"/>
+                            <TextBlock Text="未选择" FontSize="12" Opacity="0.5"
+                                       IsVisible="{Binding !HasVideoFilePath}"/>
+                        </StackPanel>
+                        <Button Grid.Column="1" Content="浏览" Click="OnBrowseVideoClicked"
+                                IsEnabled="{Binding HasNotStarted}" />
+                    </Grid>
+                </Border>
+                <Border BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="4" Padding="12">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                            <TextBlock Text="剧本文件" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding ScriptFilePath}" FontSize="12" Opacity="0.7"
+                                       TextTrimming="CharacterEllipsis"
+                                       IsVisible="{Binding HasScriptFilePath}"/>
+                            <TextBlock Text="未选择" FontSize="12" Opacity="0.5"
+                                       IsVisible="{Binding !HasScriptFilePath}"/>
+                        </StackPanel>
+                        <Button Grid.Column="1" Content="浏览" Click="OnBrowseScriptClicked"
+                                IsEnabled="{Binding HasNotStarted}"/>
+                    </Grid>
+                </Border>
+                <Border BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="4" Padding="12">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                            <TextBlock Text="翻译文件" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding TranslateFilePath}" FontSize="12" Opacity="0.7"
+                                       TextTrimming="CharacterEllipsis"
+                                       IsVisible="{Binding HasTranslateFilePath}"/>
+                            <TextBlock Text="未选择 (可空)" FontSize="12" Opacity="0.5"
+                                       IsVisible="{Binding !HasTranslateFilePath}"/>
+                        </StackPanel>
+                        <Button Grid.Column="1" Content="浏览" Click="OnBrowseTranslateClicked"
+                                IsEnabled="{Binding HasNotStarted}"/>
+                    </Grid>
+                </Border>
+            </StackPanel>
+
+            <!-- 状态/控制 -->
+            <Border Grid.Row="1" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="4" Padding="12" Margin="0,8,0,0">
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding RunStateText}" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding StopReasonText}" VerticalAlignment="Center" Opacity="0.7"
+                                   IsVisible="{Binding HasStopReasonText}"/>
+                        <TextBlock Text="{Binding EtaText}" VerticalAlignment="Center" Opacity="0.7"
+                                   IsVisible="{Binding HasEtaText}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+                        <Button Content="重置" Click="OnResetClicked" IsEnabled="{Binding CanReset}"/>
+                        <Button Content="停止" Click="OnStopClicked" IsEnabled="{Binding CanStop}"/>
+                        <Button Content="开始" Click="OnStartClicked" IsEnabled="{Binding CanStart}" Classes="accent"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- 预览 + 进度 + 计数 -->
+            <Border Grid.Row="2" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="4" Padding="12" Margin="0,8,0,0">
+                <StackPanel Spacing="8">
+                    <Grid>
+                        <Image Source="{Binding FramePreview}" Stretch="Uniform"
+                               MaxHeight="200"
+                               IsVisible="{Binding ShowPreview}"
+                               DoubleTapped="OnPreviewDoubleTapped"
+                               ToolTip.Tip="双击隐藏预览" />
+                        <Button Content="显示预览" HorizontalAlignment="Center"
+                                IsVisible="{Binding !ShowPreview}"
+                                Click="OnShowPreviewClicked"/>
+                    </Grid>
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                        <TextBlock Grid.Column="0" Text="{Binding FpsText}" Margin="0,0,8,0"
+                                   IsVisible="{Binding HasFpsText}"/>
+                        <ProgressBar Grid.Column="1" Minimum="0" Maximum="1"
+                                     Value="{Binding Progress}" Height="6" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="2" Text="{Binding ProgressText}" Margin="8,0,0,0"/>
+                    </Grid>
+                    <Grid ColumnDefinitions="*,*,*" IsVisible="{Binding !HasNotStarted}">
+                        <TextBlock Grid.Column="0" HorizontalAlignment="Center">
+                            <Run Text="对话 "/>
+                            <Run Text="{Binding DialogCurrent}"/>
+                            <Run Text="/"/>
+                            <Run Text="{Binding DialogTotal}"/>
+                        </TextBlock>
+                        <TextBlock Grid.Column="1" HorizontalAlignment="Center">
+                            <Run Text="横幅 "/>
+                            <Run Text="{Binding BannerCurrent}"/>
+                            <Run Text="/"/>
+                            <Run Text="{Binding BannerTotal}"/>
+                        </TextBlock>
+                        <TextBlock Grid.Column="2" HorizontalAlignment="Center">
+                            <Run Text="标签 "/>
+                            <Run Text="{Binding MarkerCurrent}"/>
+                            <Run Text="/"/>
+                            <Run Text="{Binding MarkerTotal}"/>
+                        </TextBlock>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- 中间可拖拽分割线 -->
+        <GridSplitter Grid.Column="1" Width="8" Background="Transparent"
+                      ResizeDirection="Columns">
+            <GridSplitter.Template>
+                <ControlTemplate>
+                    <Border Background="Transparent" Width="8" Cursor="SizeWestEast">
+                        <Border Width="1" HorizontalAlignment="Center"
+                                Background="{DynamicResource ControlStrokeColorDefaultBrush}"
+                                Margin="0,12"/>
+                    </Border>
+                </ControlTemplate>
+            </GridSplitter.Template>
+        </GridSplitter>
+
+        <!-- 右列：M1.A 暂为占位（M1.B 会接入行卡片虚拟化列表） -->
+        <Grid Grid.Column="2" RowDefinitions="Auto,*,Auto" Margin="4,12,12,12">
+            <Border Grid.Row="0" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="4" Padding="12">
+                <UniformGrid Columns="2" Rows="2">
+                    <ToggleSwitch IsChecked="{Binding ShowDialog}" Content="显示对话" Margin="4"/>
+                    <ToggleSwitch IsChecked="{Binding ShowTooLongOnly}" Content="仅显示过长行" Margin="4"
+                                  IsVisible="{Binding ShowDialog}"/>
+                    <ToggleSwitch IsChecked="{Binding ShowBanner}" Content="显示横幅" Margin="4"/>
+                    <ToggleSwitch IsChecked="{Binding ShowMarker}" Content="显示标签" Margin="4"/>
+                </UniformGrid>
+            </Border>
+            <Border Grid.Row="1" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="4" Padding="4" Margin="0,8,0,0"
+                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                <Grid>
+                    <ScrollViewer Name="LineScroller" HorizontalScrollBarVisibility="Disabled"
+                                  VerticalScrollBarVisibility="Auto">
+                        <ItemsControl Name="LineList"
+                                      ItemsSource="{Binding LineCards}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <VirtualizingStackPanel Orientation="Vertical"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.DataTemplates>
+                                <DataTemplate DataType="lineVm:DialogLineCardViewModel">
+                                    <components:DialogLineCard IsVisible="{Binding Visible}"/>
+                                </DataTemplate>
+                                <DataTemplate DataType="lineVm:BannerLineCardViewModel">
+                                    <components:BannerLineCard IsVisible="{Binding Visible}"/>
+                                </DataTemplate>
+                                <DataTemplate DataType="lineVm:MarkerLineCardViewModel">
+                                    <components:MarkerLineCard IsVisible="{Binding Visible}"/>
+                                </DataTemplate>
+                            </ItemsControl.DataTemplates>
+                        </ItemsControl>
+                    </ScrollViewer>
+
+                    <!-- 空列表占位提示 -->
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6"
+                                IsVisible="{Binding HasNotStarted}">
+                        <TextBlock HorizontalAlignment="Center" FontWeight="SemiBold" Text="行卡片视图"/>
+                        <TextBlock HorizontalAlignment="Center" Opacity="0.7" TextWrapping="Wrap"
+                                   TextAlignment="Center" MaxWidth="320"
+                                   Text="开始处理后，识别到的对话 / 横幅 / 标签会以卡片形式出现在这里。"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+            <Button Grid.Row="2" Content="输出 ASS" HorizontalAlignment="Stretch"
+                    IsEnabled="{Binding CanExport}" Click="OnExportClicked" Margin="0,8,0,0"/>
+        </Grid>
+      </Grid>
+
+      <!-- 资源引导覆盖层：首次进入时自动检查/下载 OCR 匹配模板。未就绪时盖住整页。 -->
+      <Border Background="#CC000000"
+              IsVisible="{Binding IsResourceNotReady}">
+          <Border HorizontalAlignment="Center" VerticalAlignment="Center"
+                  BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="4" Padding="24" MinWidth="360">
+              <StackPanel Spacing="12" HorizontalAlignment="Stretch">
+                  <TextBlock FontWeight="SemiBold" FontSize="16" HorizontalAlignment="Center"
+                             Text="准备模板资源"/>
+                  <TextBlock HorizontalAlignment="Center" TextAlignment="Center"
+                             TextWrapping="Wrap" MaxWidth="320"
+                             Text="{Binding ResourceStatusText}"/>
+                  <ProgressBar IsIndeterminate="True" Height="4"
+                               IsVisible="{Binding IsResourceChecking}"/>
+                  <Button Content="开始使用" HorizontalAlignment="Center"
+                          Click="OnDismissResourceOverlayClicked"
+                          IsVisible="{Binding IsResourceReady}"
+                          Classes="accent"/>
+                  <Button Content="重试" HorizontalAlignment="Center"
+                          Click="OnRetryResourceClicked"
+                          IsVisible="{Binding IsResourceFailed}"
+                          Classes="accent"/>
+              </StackPanel>
+          </Border>
+      </Border>
+    </Grid>
+</UserControl>

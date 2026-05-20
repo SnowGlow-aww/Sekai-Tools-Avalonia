@@ -1,0 +1,40 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:ui="using:FluentAvalonia.UI.Controls"
+        xmlns:vm="using:SekaiToolsApp.ViewModels"
+        mc:Ignorable="d"
+        d:DesignWidth="1200" d:DesignHeight="800"
+        x:Class="SekaiToolsApp.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="Sekai Tools"
+        Width="1200" Height="800"
+        MinWidth="900" MinHeight="600"
+        Icon="/Assets/icon.ico">
+
+    <ui:NavigationView
+        Name="Nav"
+        IsBackButtonVisible="False"
+        PaneDisplayMode="Left"
+        OpenPaneLength="180"
+        IsSettingsVisible="False"
+        MenuItemsSource="{Binding MenuItems}"
+        FooterMenuItemsSource="{Binding FooterMenuItems}"
+        SelectedItem="{Binding SelectedItem, Mode=TwoWay}">
+
+        <ui:NavigationView.MenuItemTemplate>
+            <DataTemplate DataType="vm:NavigationItem">
+                <ui:NavigationViewItem Content="{Binding Title}">
+                    <ui:NavigationViewItem.IconSource>
+                        <ui:SymbolIconSource Symbol="{Binding Icon}"/>
+                    </ui:NavigationViewItem.IconSource>
+                </ui:NavigationViewItem>
+            </DataTemplate>
+        </ui:NavigationView.MenuItemTemplate>
+
+        <ContentControl Content="{Binding CurrentPage}"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch"/>
+    </ui:NavigationView>
+</Window>

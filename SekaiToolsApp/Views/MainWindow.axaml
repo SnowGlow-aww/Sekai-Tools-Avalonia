@@ -8,7 +8,7 @@
         d:DesignWidth="1200" d:DesignHeight="800"
         x:Class="SekaiToolsApp.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
-        Title="Sekai Tools"
+        Title="SekaiTools Avalonia"
         Width="1200" Height="800"
         MinWidth="900" MinHeight="600"
         Icon="/Assets/icon.ico">

@@ -29,6 +29,7 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Publish
+        shell: bash
         run: |
           dotnet publish SekaiToolsApp/SekaiToolsApp.csproj \
             -c Release -r ${{ matrix.rid }} --self-contained true \

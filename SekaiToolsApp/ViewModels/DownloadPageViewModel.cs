@@ -498,11 +498,9 @@ public partial class DownloadPageViewModel : ViewModelBase
     [
         new()
         {
-            SourceName = "Moesekai JP",
-            // Master JSON (events.json / unitStories.json / ...)
-            SourceTemplate = "https://sekaimaster.exmeaning.com/master/{type}.json",
-            // Storage 镜像直接返回 JSON，不需要按 .asset 解析
-            StorageBaseUrl = "https://storage.exmeaning.com/sekai-jp-assets/",
+            SourceName = "Moesekai CN",
+            SourceTemplate = "https://sekaimaster-cn.exmeaning.com/master/{type}.json",
+            StorageBaseUrl = "https://storage.exmeaning.com/sekai-cn-assets/",
             ActionSetTemplate = "scenario/actionset/{abName}/{scenarioId}.json",
             MemberStoryTemplate = "character/member/{abName}/{scenarioId}.json",
             EventStoryTemplate = "event_story/{abName}/scenario/{scenarioId}.json",
@@ -511,9 +509,9 @@ public partial class DownloadPageViewModel : ViewModelBase
         },
         new()
         {
-            SourceName = "Moesekai CN",
-            SourceTemplate = "https://sekaimaster-cn.exmeaning.com/master/{type}.json",
-            StorageBaseUrl = "https://storage.exmeaning.com/sekai-cn-assets/",
+            SourceName = "Moesekai JP",
+            SourceTemplate = "https://sekaimaster.exmeaning.com/master/{type}.json",
+            StorageBaseUrl = "https://storage.exmeaning.com/sekai-jp-assets/",
             ActionSetTemplate = "scenario/actionset/{abName}/{scenarioId}.json",
             MemberStoryTemplate = "character/member/{abName}/{scenarioId}.json",
             EventStoryTemplate = "event_story/{abName}/scenario/{scenarioId}.json",
@@ -554,9 +552,9 @@ public partial class DownloadPageViewModel : ViewModelBase
             baseList = SourceData.Default;
         }
 
-        // 合并 Moesekai 内置源（按 SourceName 去重；远端列表里若已有同名条目则保持远端版本）
-        var existingNames = baseList.Select(s => s.SourceName).ToHashSet();
-        var merged = baseList.Concat(MoesekaiSources.Where(m => !existingNames.Contains(m.SourceName))).ToArray();
+        // Moesekai 排最前，其余源追加在后（去重）
+        var existingNames = MoesekaiSources.Select(s => s.SourceName).ToHashSet();
+        var merged = MoesekaiSources.Concat(baseList.Where(s => !existingNames.Contains(s.SourceName))).ToArray();
         return merged;
     }
 

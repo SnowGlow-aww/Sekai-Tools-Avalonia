@@ -15,6 +15,7 @@
         <Platforms>AnyCPU;x64</Platforms>
         <UseAppHost>true</UseAppHost>
         <RuntimeIdentifiers>win-x64;osx-x64;osx-arm64;linux-x64</RuntimeIdentifiers>
+        <Version>0.1.0-beta</Version>
         <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
         <NoWarn>$(NoWarn);CA1416</NoWarn>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>

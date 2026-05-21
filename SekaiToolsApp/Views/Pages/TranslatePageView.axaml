@@ -19,10 +19,15 @@
         </DataTemplate>
     </UserControl.DataTemplates>
 
-    <Grid Margin="8" RowDefinitions="Auto,Auto,*">
+    <Grid Margin="8" ClipToBounds="True">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto" MinHeight="150" MaxHeight="500"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="*" MinHeight="200"/>
+        </Grid.RowDefinitions>
 
         <!-- 顶部参数面板：会话 / 平台剧情 / 本地兼容 / 控制条 -->
-        <ScrollViewer Grid.Row="0" MaxHeight="500" MinHeight="100" HorizontalScrollBarVisibility="Disabled">
+        <ScrollViewer Grid.Row="0" MaxHeight="500" MinHeight="150" HorizontalScrollBarVisibility="Disabled">
             <StackPanel Spacing="8">
 
                 <!-- SekaiPlatform 会话面板 -->
@@ -207,8 +212,13 @@
         </GridSplitter>
 
         <!-- 行列表区：左 FastCopy 侧栏 / 可拖拽分割线 / 右行列表 -->
-        <Grid Grid.Row="2" ColumnDefinitions="160,Auto,*" Margin="0,0,0,0">
-            <components:FastCopyView Grid.Column="0" Margin="0,0,4,0" MinWidth="120" MaxWidth="300"/>
+        <Grid Grid.Row="2" Margin="0,0,0,0" MinHeight="200" ClipToBounds="True">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" MinWidth="140" MaxWidth="280"/>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="3*" MinWidth="350"/>
+            </Grid.ColumnDefinitions>
+            <components:FastCopyView Grid.Column="0" Margin="0,0,4,0" ClipToBounds="True"/>
 
             <GridSplitter Grid.Column="1" Width="8" Background="Transparent"
                           ResizeDirection="Columns">
@@ -223,7 +233,7 @@
                 </GridSplitter.Template>
             </GridSplitter>
 
-            <Grid Grid.Column="2">
+            <Grid Grid.Column="2" ClipToBounds="True">
                 <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"
                               IsVisible="{Binding HasEvents}">
                     <ItemsControl ItemsSource="{Binding Events}"/>

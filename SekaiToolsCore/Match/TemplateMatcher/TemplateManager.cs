@@ -135,9 +135,7 @@ public class TemplateManager(Size videoResolution, bool noScale = false)
         };
 
         var fontSize = GetFontSize(fontSizeScale);
-        using var skFont = new SKFont(typeface, fontSize);
 
-        // 画布尺寸：与原 GDI+ 实现一致，给字符串保留充足横向空间。
         var canvasWidth = (int)(text.Length * fontSize * 2);
         var canvasHeight = fontSize * 2;
 
@@ -147,11 +145,18 @@ public class TemplateManager(Size videoResolution, bool noScale = false)
 
         using (var canvas = new SKCanvas(bitmap))
         {
-            // 文本基线坐标 (10, 10 + size)：与原实现 path.AddString(... new Point(10,10)) 的语义一致。
-            // GDI+ 中 AddString 的起点是字形外接框左上角，SkiaSharp.DrawText 用基线 y，
-            // 因此 y 偏移为 10 + ascender；近似值取 fontSize 即可（实际包围盒在 CropByAlpha 后裁掉空白）。
+            // Use path-based rendering to match GDI+ GraphicsPath.AddString behavior
+            using var textPaint = new SKPaint
+            {
+                Typeface = typeface,
+                TextSize = fontSize,
+                IsAntialias = true,
+            };
+
             const float originX = 10f;
             var originY = 10f + fontSize;
+
+            using var textPath = textPaint.GetTextPath(text, originX, originY);
 
             var (fillColor, strokeColor, strokeWidth, withStroke) = ResolvePaints(usage, fontSize);
 
@@ -166,7 +171,7 @@ public class TemplateManager(Size videoResolution, bool noScale = false)
                     Color = strokeColor,
                     IsAntialias = true,
                 };
-                canvas.DrawText(text, originX, originY, skFont, strokePaint);
+                canvas.DrawPath(textPath, strokePaint);
             }
 
             using var fillPaint = new SKPaint
@@ -175,7 +180,7 @@ public class TemplateManager(Size videoResolution, bool noScale = false)
                 Color = fillColor,
                 IsAntialias = true,
             };
-            canvas.DrawText(text, originX, originY, skFont, fillPaint);
+            canvas.DrawPath(textPath, fillPaint);
         }
 
         // SKBitmap (BGRA8888 Unpremul) -> Emgu Mat (BGRA, 8U, 4ch)
@@ -217,7 +222,6 @@ public class TemplateManager(Size videoResolution, bool noScale = false)
         {
             TemplateUsage.BannerContent => (fill, default, 0f, false),
             TemplateUsage.DialogNameTag => (fill, stroke, fontSize / 5f, true),
-            // DialogContent / MarkerContent
             _ => (fill, stroke, fontSize / 5f, true),
         };
     }

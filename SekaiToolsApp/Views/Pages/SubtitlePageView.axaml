@@ -10,11 +10,16 @@
              x:Class="SekaiToolsApp.Views.Pages.SubtitlePageView"
              x:DataType="vm:SubtitlePageViewModel"
              DragDrop.AllowDrop="True">
-    <Grid>
-      <Grid ColumnDefinitions="380,Auto,*">
+    <Grid ClipToBounds="True">
+      <Grid ClipToBounds="True">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="2*" MinWidth="350" MaxWidth="550"/>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="3*" MinWidth="320"/>
+        </Grid.ColumnDefinitions>
 
         <!-- 左列：文件选择 + 运行控制 + 进度 / 预览 -->
-        <Grid Grid.Column="0" RowDefinitions="Auto,Auto,*" Margin="12,12,4,12" MinWidth="250" MaxWidth="600">
+        <Grid Grid.Column="0" RowDefinitions="Auto,Auto,*" Margin="12,12,4,12" ClipToBounds="True">
 
             <!-- 三个文件选择器 -->
             <StackPanel Grid.Row="0" Spacing="6">
@@ -139,7 +144,7 @@
         </GridSplitter>
 
         <!-- 右列：M1.A 暂为占位（M1.B 会接入行卡片虚拟化列表） -->
-        <Grid Grid.Column="2" RowDefinitions="Auto,*,Auto" Margin="4,12,12,12">
+        <Grid Grid.Column="2" RowDefinitions="Auto,*,Auto" Margin="4,12,12,12" ClipToBounds="True">
             <Border Grid.Row="0" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="4" Padding="12">
                 <UniformGrid Columns="2" Rows="2">
                     <ToggleSwitch IsChecked="{Binding ShowDialog}" Content="显示对话" Margin="4"/>
@@ -191,17 +196,24 @@
       </Grid>
 
       <!-- 资源引导覆盖层：首次进入时自动检查/下载 OCR 匹配模板。未就绪时盖住整页。 -->
-      <Border Background="#CC000000"
-              IsVisible="{Binding IsResourceNotReady}">
+      <Border Background="#80000000"
+              IsVisible="{Binding IsResourceNotReady}"
+              HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+              ZIndex="10">
           <Border HorizontalAlignment="Center" VerticalAlignment="Center"
-                  BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="4" Padding="24" MinWidth="360">
+                  Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
+                  BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                  BorderThickness="1" CornerRadius="8" Padding="32" Width="400"
+                  BoxShadow="0 8 32 0 #40000000">
               <StackPanel Spacing="12" HorizontalAlignment="Stretch">
                   <TextBlock FontWeight="SemiBold" FontSize="16" HorizontalAlignment="Center"
+                             TextAlignment="Center"
                              Text="准备模板资源"/>
                   <TextBlock HorizontalAlignment="Center" TextAlignment="Center"
                              TextWrapping="Wrap" MaxWidth="320"
                              Text="{Binding ResourceStatusText}"/>
                   <ProgressBar IsIndeterminate="True" Height="4"
+                               HorizontalAlignment="Stretch"
                                IsVisible="{Binding IsResourceChecking}"/>
                   <Button Content="开始使用" HorizontalAlignment="Center"
                           Click="OnDismissResourceOverlayClicked"

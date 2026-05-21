@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 using SekaiToolsCore;
 
 namespace SekaiToolsApp.Services;
@@ -51,6 +53,52 @@ public static class SuppressRuntimeService
             throw new FileNotFoundException(probe.Message);
 
         return probe.Descriptor;
+    }
+
+    public static async Task<List<VideoEncoder>> ProbeAvailableEncodersAsync(string? ffmpegPathHint = null)
+    {
+        var available = new List<VideoEncoder> { VideoEncoder.Libx264 };
+
+        if (!TryResolveFfmpeg(ffmpegPathHint, out var ffmpegPath, out _))
+            return available;
+
+        var encoderMap = new Dictionary<string, VideoEncoder>
+        {
+            ["h264_videotoolbox"] = VideoEncoder.H264VideoToolbox,
+            ["h264_nvenc"] = VideoEncoder.H264Nvenc,
+            ["h264_qsv"] = VideoEncoder.H264Qsv,
+        };
+
+        try
+        {
+            var psi = new ProcessStartInfo(ffmpegPath)
+            {
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+            };
+            psi.ArgumentList.Add("-hide_banner");
+            psi.ArgumentList.Add("-encoders");
+
+            using var proc = Process.Start(psi);
+            if (proc == null) return available;
+
+            var output = await proc.StandardOutput.ReadToEndAsync();
+            await proc.WaitForExitAsync();
+
+            foreach (var (name, encoder) in encoderMap)
+            {
+                if (output.Contains(name))
+                    available.Add(encoder);
+            }
+        }
+        catch
+        {
+            // probe 失败不阻塞
+        }
+
+        return available;
     }
 
     private static bool TryResolveVapourSynth(

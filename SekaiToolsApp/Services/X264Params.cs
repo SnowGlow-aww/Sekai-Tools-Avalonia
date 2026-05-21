@@ -7,13 +7,13 @@ namespace SekaiToolsApp.Services;
 /// </summary>
 public sealed class X264Params
 {
-    public int BFrames { get; init; } = 16;
+    public int BFrames { get; init; } = 8;
     public int BAdapt { get; init; } = 2;
     public string Me { get; init; } = "umh";
-    public int MeRange { get; init; } = 24;
-    public int SubMe { get; init; } = 11;
+    public int MeRange { get; init; } = 16;
+    public int SubMe { get; init; } = 7;
     public int AqMode { get; init; } = 3;
-    public int Ref { get; init; } = 10;
+    public int Ref { get; init; } = 4;
     public string PsyRd { get; init; } = "0.2:0.0";
     public string DeBlock { get; init; } = "1:2";
     public int KeyInt { get; init; } = 600;

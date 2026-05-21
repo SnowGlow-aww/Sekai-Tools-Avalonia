@@ -15,6 +15,8 @@ public class GaMat // Gray and Alpha Mat
         var alphaChannel = new Mat();
         CvInvoke.CvtColor(src, grayImage, ColorConversion.Bgra2Gray);
         CvInvoke.ExtractChannel(src, alphaChannel, 3);
+        // Binarize alpha to match GDI+ behavior (no partial transparency)
+        CvInvoke.Threshold(alphaChannel, alphaChannel, 127, 255, ThresholdType.Binary);
         if (resize)
         {
             const int scaleRatio = 5;

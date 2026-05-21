@@ -299,14 +299,26 @@ public partial class SuppressPageView : UserControl
             {
                 await SetResourceStateAsync(ResourceReadyState.Checking, "正在检查压制运行环境…");
 
-                var probe = Suppressor.ProbeRuntime(SettingsService.Instance.Current.FfmpegPath);
+                var ffmpegHint = SettingsService.Instance.Current.FfmpegPath;
+                var probe = Suppressor.ProbeRuntime(ffmpegHint);
                 var message = probe.IsReady
-                    ? probe.Message + "\n点击“开始使用”即可开始压制。"
+                    ? probe.Message + "\n点击「开始使用」即可开始压制。"
                     : probe.Message;
 
                 await SetResourceStateAsync(
                     probe.IsReady ? ResourceReadyState.Ready : ResourceReadyState.Failed,
                     message);
+
+                if (probe.IsReady)
+                {
+                    var encoders = await SuppressRuntimeService.ProbeAvailableEncodersAsync(ffmpegHint);
+                    await Dispatcher.UIThread.InvokeAsync(() =>
+                    {
+                        _viewModel.AvailableEncoders = encoders;
+                        if (encoders.Count > 1)
+                            _viewModel.SelectedEncoder = encoders[1];
+                    }).GetTask();
+                }
             }
             catch (Exception ex)
             {

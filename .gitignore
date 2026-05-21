@@ -465,3 +465,8 @@ Build
 
 # Archives
 *.7z
+
+# Build artifacts
+artifacts/
+*.zip
+DiagnosticTest/

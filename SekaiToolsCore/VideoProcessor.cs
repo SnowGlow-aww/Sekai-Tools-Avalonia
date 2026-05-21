@@ -196,6 +196,9 @@ public class VideoProcessor
 
         var avgDuration = 0d;
         var frameIndex = 0;
+        var skipFrames = Math.Max(1, (int)(frameRate / 30)); // 等效 30fps 采样
+        var stableCount = 0;
+        const int StableThreshold = 5;
         while (true)
         {
             var tic = Environment.TickCount;
@@ -265,6 +268,21 @@ public class VideoProcessor
                     var markerIndex = MarkerMatcher.LastNotProcessedIndex();
                     MarkerMatcher.Process(frame, frameIndex);
                     if (MarkerMatcher.Set[markerIndex].Finished) Callbacks.OnNewMarker(MarkerMatcher.Set[markerIndex]);
+                }
+
+                // 帧跳过：状态稳定时用 Grab() 跳过中间帧
+                if (!matchBannerNow && ContentMatcher is { Finished: true })
+                {
+                    stableCount++;
+                    if (stableCount >= StableThreshold && skipFrames > 1)
+                    {
+                        for (var i = 0; i < skipFrames - 1; i++)
+                            capture.Grab();
+                    }
+                }
+                else
+                {
+                    stableCount = 0;
                 }
 
                 // 清空异常计数（处理成功）

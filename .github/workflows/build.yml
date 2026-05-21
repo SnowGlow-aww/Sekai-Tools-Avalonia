@@ -5,15 +5,21 @@ on:
   workflow_dispatch:
 
 env:
-  DOTNET_VERSION: '8.0.x'
+  DOTNET_VERSION: '10.0.x'
 
 jobs:
   build:
-    name: build-${{matrix.os}}
+    name: build-${{ matrix.rid }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ ubuntu-latest, windows-latest, macos-latest ]
+        include:
+          - os: windows-latest
+            rid: win-x64
+          - os: macos-latest
+            rid: osx-arm64
+          - os: ubuntu-latest
+            rid: linux-x64
 
     steps:
       - uses: actions/checkout@v5
@@ -22,4 +28,15 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - run: dotnet build SekaiToolsApp/SekaiToolsApp.csproj -c Release
+      - name: Publish
+        run: |
+          dotnet publish SekaiToolsApp/SekaiToolsApp.csproj \
+            -c Release -r ${{ matrix.rid }} --self-contained true \
+            -p:UseAppHost=true -p:PublishSingleFile=true \
+            -p:IncludeNativeLibrariesForSelfExtract=true
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SekaiTools-${{ matrix.rid }}
+          path: SekaiToolsApp/bin/Release/net10.0/${{ matrix.rid }}/publish/

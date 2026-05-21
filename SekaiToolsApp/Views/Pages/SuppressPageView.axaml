@@ -92,6 +92,33 @@
                                       VerticalAlignment="Center"/>
                     </Grid>
                 </Border>
+
+                <Border BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="12"
+                        IsVisible="{Binding HasNotStarted}">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                            <TextBlock Text="编码器" FontWeight="SemiBold"/>
+                            <TextBlock Text="硬件编码器速度快但文件略大"
+                                       FontSize="12" Opacity="0.7"/>
+                        </StackPanel>
+                        <ComboBox Grid.Column="1" MinWidth="180"
+                                  ItemsSource="{Binding AvailableEncoderNames}"
+                                  SelectedIndex="{Binding SelectedEncoderIndex}"/>
+                    </Grid>
+                </Border>
+
+                <Border BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="12"
+                        IsVisible="{Binding HasNotStarted}">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                            <TextBlock Text="硬件解码加速" FontWeight="SemiBold"/>
+                            <TextBlock Text="使用 GPU 加速视频解码"
+                                       FontSize="12" Opacity="0.7"/>
+                        </StackPanel>
+                        <ToggleSwitch Grid.Column="1" IsChecked="{Binding UseHwAccelDecode}"
+                                      VerticalAlignment="Center"/>
+                    </Grid>
+                </Border>
             </StackPanel>
 
             <!-- 状态/控制 -->

@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Emgu.CV;
 using Emgu.CV.CvEnum;
@@ -86,6 +88,32 @@ public partial class SuppressPageViewModel : ViewModelBase
 
     [ObservableProperty] private int _suppressCrf = 21;
     [ObservableProperty] private bool _useComplexConfig = true;
+    [ObservableProperty] private VideoEncoder _selectedEncoder = VideoEncoder.Libx264;
+    [ObservableProperty] private List<VideoEncoder> _availableEncoders = [VideoEncoder.Libx264];
+    [ObservableProperty] private bool _useHwAccelDecode = true;
+
+    public List<string> AvailableEncoderNames => AvailableEncoders.Select(e => e.DisplayName()).ToList();
+
+    public int SelectedEncoderIndex
+    {
+        get => AvailableEncoders.IndexOf(SelectedEncoder);
+        set
+        {
+            if (value >= 0 && value < AvailableEncoders.Count)
+                SelectedEncoder = AvailableEncoders[value];
+        }
+    }
+
+    partial void OnAvailableEncodersChanged(List<VideoEncoder> value)
+    {
+        OnPropertyChanged(nameof(AvailableEncoderNames));
+        OnPropertyChanged(nameof(SelectedEncoderIndex));
+    }
+
+    partial void OnSelectedEncoderChanged(VideoEncoder value)
+    {
+        OnPropertyChanged(nameof(SelectedEncoderIndex));
+    }
 
     #endregion
 
@@ -228,6 +256,8 @@ public partial class SuppressPageViewModel : ViewModelBase
             Crf = SuppressCrf,
             FfmpegPath = SettingsService.Instance.Current.FfmpegPath,
             SourceFrameCount = SourceFrameCount,
+            PreferredEncoder = SelectedEncoder,
+            UseHwAccelDecode = UseHwAccelDecode,
         };
     }
 
@@ -250,6 +280,8 @@ public partial class SuppressPageViewModel : ViewModelBase
         SuppressCrf = 21;
         UseComplexConfig = true;
         SourceFrameCount = 0;
+        SelectedEncoder = VideoEncoder.Libx264;
+        UseHwAccelDecode = true;
     }
 }
 

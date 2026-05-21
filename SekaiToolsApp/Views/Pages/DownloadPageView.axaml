@@ -42,23 +42,24 @@
         </DataTemplate>
     </UserControl.Resources>
 
-    <Grid ColumnDefinitions="*,260" Margin="12">
+    <Grid ColumnDefinitions="*,290" Margin="12" ClipToBounds="True">
         <!-- 主内容：源 / 类型 / 单元 / 候选项 -->
-        <Grid Grid.Column="0" RowDefinitions="Auto,Auto,*">
+        <Grid Grid.Column="0" RowDefinitions="Auto,Auto,*" ClipToBounds="True">
 
             <!-- 顶部：源 / 类型 / 刷新 -->
             <Border Grid.Row="0"
                     BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,0,8">
-                <Grid ColumnDefinitions="*,*,Auto">
+                <Grid ColumnDefinitions="*,*,Auto" VerticalAlignment="Center">
                     <ComboBox Grid.Column="0"
                               ItemsSource="{Binding Sources}"
                               SelectedIndex="{Binding CurrentSourceIndex, Mode=TwoWay}"
                               HorizontalAlignment="Stretch"
+                              VerticalAlignment="Center"
                               Margin="0,0,4,0"
                               IsEnabled="{Binding !IsBusy}">
                         <ComboBox.ItemTemplate>
                             <DataTemplate x:DataType="src:SourceData">
-                                <TextBlock Text="{Binding SourceName}"/>
+                                <TextBlock Text="{Binding SourceName}" VerticalAlignment="Center"/>
                             </DataTemplate>
                         </ComboBox.ItemTemplate>
                     </ComboBox>
@@ -67,11 +68,13 @@
                               ItemsSource="{x:Static vm:DownloadPageViewModel.StoryTypeNames}"
                               SelectedIndex="{Binding StoryTypeIndex, Mode=TwoWay}"
                               HorizontalAlignment="Stretch"
+                              VerticalAlignment="Center"
                               Margin="4,0"
                               IsEnabled="{Binding !IsBusy}"/>
 
                     <Button Grid.Column="2" Content="刷新"
                             Click="OnRefreshClicked" Width="80"
+                            VerticalAlignment="Center"
                             Margin="4,0,0,0"
                             IsEnabled="{Binding !IsBusy}"/>
                 </Grid>
@@ -242,26 +245,23 @@
             </Border>
         </Grid>
 
-        <!-- 右栏：下载列表 -->
+        <!-- 右栏：下载队列 -->
         <Border Grid.Column="1"
-                BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="0" Margin="8,0,0,0">
+                BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="0"
+                Margin="8,0,0,0" ClipToBounds="True">
                 <Grid RowDefinitions="Auto,*,Auto">
-                    <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto,Auto" Margin="6">
-                        <Button Grid.Column="0" Content="清空"
-                                Click="OnClearClicked"
-                                IsEnabled="{Binding !IsDownloading}"/>
-                        <TextBlock Grid.Column="1" Text="下载列表"
-                                   TextAlignment="Center"
-                                   VerticalAlignment="Center"
-                                   FontWeight="SemiBold"/>
-                        <Button Grid.Column="2" Content="下载"
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="6" Margin="8"
+                                HorizontalAlignment="Center">
+                        <Button Content="下载"
                                 Click="OnDownloadClicked"
                                 Classes="accent"
                                 IsEnabled="{Binding !IsBusy}"/>
-                        <Button Grid.Column="3" Content="打开目录"
-                                Click="OnOpenDownloadDirectoryClicked"
-                                Margin="6,0,0,0"/>
-                    </Grid>
+                        <Button Content="清空下载队列"
+                                Click="OnClearClicked"
+                                IsEnabled="{Binding !IsDownloading}"/>
+                        <Button Content="打开目录"
+                                Click="OnOpenDownloadDirectoryClicked"/>
+                    </StackPanel>
 
                 <ScrollViewer Grid.Row="1">
                     <ItemsControl ItemsSource="{Binding Tasks}" Margin="6">

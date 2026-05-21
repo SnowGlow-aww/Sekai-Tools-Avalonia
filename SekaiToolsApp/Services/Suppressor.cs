@@ -23,6 +23,8 @@ public sealed class SuppressorOptions
     public bool UseComplexConfig { get; init; } = true;
     public int Crf { get; init; } = 21;
     public string FfmpegPath { get; init; } = string.Empty;
+    public VideoEncoder PreferredEncoder { get; init; } = VideoEncoder.Libx264;
+    public bool UseHwAccelDecode { get; init; } = true;
 
     /// <summary>
     /// 视频总帧数，用于进度百分比计算。零值时由 <see cref="Suppressor"/> 自行 probe，
@@ -392,10 +394,6 @@ public sealed partial class Suppressor : IDisposable
 
     private Process CreateLegacyFfmpegProcess(string ffmpegPath)
     {
-        var x264 = _options.UseComplexConfig
-            ? _x264Params.GetX264Params()
-            : _x264Params.GetSimpleX264Params();
-
         var process = new Process
         {
             StartInfo = new ProcessStartInfo
@@ -420,10 +418,9 @@ public sealed partial class Suppressor : IDisposable
         process.StartInfo.ArgumentList.Add("0:v:0");
         process.StartInfo.ArgumentList.Add("-map");
         process.StartInfo.ArgumentList.Add("1:a?");
-        process.StartInfo.ArgumentList.Add("-c:v");
-        process.StartInfo.ArgumentList.Add("libx264");
-        process.StartInfo.ArgumentList.Add("-x264-params");
-        process.StartInfo.ArgumentList.Add(x264);
+
+        AddEncoderArgs(process.StartInfo.ArgumentList);
+
         process.StartInfo.ArgumentList.Add("-c:a");
         process.StartInfo.ArgumentList.Add("copy");
         process.StartInfo.ArgumentList.Add("-y");
@@ -434,10 +431,6 @@ public sealed partial class Suppressor : IDisposable
 
     private Process CreateFfmpegOnlyProcess(string ffmpegPath)
     {
-        var x264 = _options.UseComplexConfig
-            ? _x264Params.GetX264Params()
-            : _x264Params.GetSimpleX264Params();
-
         var process = new Process
         {
             StartInfo = new ProcessStartInfo
@@ -454,6 +447,9 @@ public sealed partial class Suppressor : IDisposable
 
         process.StartInfo.ArgumentList.Add("-hide_banner");
         process.StartInfo.ArgumentList.Add("-y");
+
+        AddHwAccelDecodeArgs(process.StartInfo.ArgumentList);
+
         process.StartInfo.ArgumentList.Add("-i");
         process.StartInfo.ArgumentList.Add(_options.SourceVideo);
 
@@ -468,10 +464,9 @@ public sealed partial class Suppressor : IDisposable
         process.StartInfo.ArgumentList.Add("0:v:0");
         process.StartInfo.ArgumentList.Add("-map");
         process.StartInfo.ArgumentList.Add("0:a?");
-        process.StartInfo.ArgumentList.Add("-c:v");
-        process.StartInfo.ArgumentList.Add("libx264");
-        process.StartInfo.ArgumentList.Add("-x264-params");
-        process.StartInfo.ArgumentList.Add(x264);
+
+        AddEncoderArgs(process.StartInfo.ArgumentList);
+
         process.StartInfo.ArgumentList.Add("-c:a");
         process.StartInfo.ArgumentList.Add("copy");
         process.StartInfo.ArgumentList.Add(_options.OutputPath);
@@ -515,6 +510,62 @@ public sealed partial class Suppressor : IDisposable
         }
 
         return builder.ToString();
+    }
+
+    private void AddHwAccelDecodeArgs(IList<string> args)
+    {
+        if (!_options.UseHwAccelDecode) return;
+
+        if (OperatingSystem.IsMacOS())
+        {
+            args.Add("-hwaccel");
+            args.Add("videotoolbox");
+        }
+        else
+        {
+            args.Add("-hwaccel");
+            args.Add("auto");
+        }
+    }
+
+    private void AddEncoderArgs(IList<string> args)
+    {
+        switch (_options.PreferredEncoder)
+        {
+            case VideoEncoder.H264VideoToolbox:
+                args.Add("-c:v");
+                args.Add("h264_videotoolbox");
+                args.Add("-q:v");
+                args.Add("65");
+                args.Add("-profile:v");
+                args.Add("high");
+                break;
+            case VideoEncoder.H264Nvenc:
+                args.Add("-c:v");
+                args.Add("h264_nvenc");
+                args.Add("-preset");
+                args.Add("p4");
+                args.Add("-cq");
+                args.Add(_options.Crf.ToString());
+                args.Add("-profile:v");
+                args.Add("high");
+                break;
+            case VideoEncoder.H264Qsv:
+                args.Add("-c:v");
+                args.Add("h264_qsv");
+                args.Add("-global_quality");
+                args.Add(_options.Crf.ToString());
+                break;
+            default:
+                var x264 = _options.UseComplexConfig
+                    ? _x264Params.GetX264Params()
+                    : _x264Params.GetSimpleX264Params();
+                args.Add("-c:v");
+                args.Add("libx264");
+                args.Add("-x264-params");
+                args.Add(x264);
+                break;
+        }
     }
 
     private static void TryKill(Process? p)

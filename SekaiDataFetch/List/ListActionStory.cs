@@ -69,6 +69,7 @@ public class ListActionStory : BaseListStory
 
     private void GetData(ActionSet[] actionSets, Area[] areas, Character2d[] character2ds)
     {
+        Data.Clear();
         foreach (var actionSet in actionSets)
         {
             var area = areas.FirstOrDefault(area => area.Id == actionSet.AreaId);

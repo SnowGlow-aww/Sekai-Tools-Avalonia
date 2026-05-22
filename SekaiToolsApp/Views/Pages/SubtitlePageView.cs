@@ -53,7 +53,8 @@ public partial class SubtitlePageView : UserControl
         AddHandler(DragDrop.DragOverEvent, OnDragOver);
         AddHandler(DragDrop.DropEvent, OnDrop);
 
-        // 异步启动：页面构造完立刻检查/下载模板资源。
+        Loaded += (_, _) => SetupColumnSplitter();
+
         _ = EnsureResourcesAsync();
     }
 
@@ -733,8 +734,12 @@ public partial class SubtitlePageView : UserControl
             }
             catch (Exception ex)
             {
+                var msg = ex.Message;
+                if (msg.Contains("访问权限") || msg.Contains("WSAEACCES") ||
+                    msg.Contains("permission", StringComparison.OrdinalIgnoreCase))
+                    msg += "\n\n提示：Windows 上可尝试以管理员模式启动应用解决此问题。";
                 await SetResourceStateAsync(ResourceReadyState.Failed,
-                    "模板资源准备失败：\n" + ex.Message);
+                    "模板资源准备失败：\n" + msg);
             }
         });
     }
@@ -772,6 +777,53 @@ public partial class SubtitlePageView : UserControl
         {
             _ = ResourceManager.Instance.ResourcePath(ResourceType.VideoProcess, file);
         }
+    }
+
+    #endregion
+
+    #region Column Splitter
+
+    private bool _splitterDragging;
+    private Point _splitterStart;
+    private double _splitterOriginalWidth;
+
+    private void SetupColumnSplitter()
+    {
+        var splitter = this.FindControl<Border>("ColumnSplitter");
+        if (splitter is null) return;
+
+        splitter.PointerPressed += (_, e) =>
+        {
+            if (!e.GetCurrentPoint(splitter).Properties.IsLeftButtonPressed) return;
+            _splitterDragging = true;
+            _splitterStart = e.GetPosition(this);
+            var grid = splitter.Parent as Grid;
+            if (grid != null)
+                _splitterOriginalWidth = grid.ColumnDefinitions[0].ActualWidth;
+            e.Pointer.Capture(splitter);
+            e.Handled = true;
+        };
+
+        splitter.PointerMoved += (_, e) =>
+        {
+            if (!_splitterDragging) return;
+            var pos = e.GetPosition(this);
+            var delta = pos.X - _splitterStart.X;
+            var grid = splitter.Parent as Grid;
+            if (grid is null) return;
+            var col = grid.ColumnDefinitions[0];
+            var newWidth = Math.Clamp(_splitterOriginalWidth + delta, col.MinWidth, col.MaxWidth);
+            col.Width = new GridLength(newWidth, GridUnitType.Pixel);
+            e.Handled = true;
+        };
+
+        splitter.PointerReleased += (_, e) =>
+        {
+            if (!_splitterDragging) return;
+            _splitterDragging = false;
+            e.Pointer.Capture(null);
+            e.Handled = true;
+        };
     }
 
     #endregion

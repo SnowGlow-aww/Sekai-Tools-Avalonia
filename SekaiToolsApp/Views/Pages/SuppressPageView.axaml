@@ -98,10 +98,10 @@
                     <Grid ColumnDefinitions="*,Auto">
                         <StackPanel Grid.Column="0" VerticalAlignment="Center">
                             <TextBlock Text="编码器" FontWeight="SemiBold"/>
-                            <TextBlock Text="硬件编码器速度快但文件略大"
+                            <TextBlock Text="推荐选用带 NVENC/VideoToolbox/QSV 的硬件编码"
                                        FontSize="12" Opacity="0.7"/>
                         </StackPanel>
-                        <ComboBox Grid.Column="1" MinWidth="180"
+                        <ComboBox Grid.Column="1" MinWidth="220"
                                   ItemsSource="{Binding AvailableEncoderNames}"
                                   SelectedIndex="{Binding SelectedEncoderIndex}"/>
                     </Grid>

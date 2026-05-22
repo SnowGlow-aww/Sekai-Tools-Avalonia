@@ -55,6 +55,7 @@
                               SelectedIndex="{Binding CurrentSourceIndex, Mode=TwoWay}"
                               HorizontalAlignment="Stretch"
                               VerticalAlignment="Center"
+                              VerticalContentAlignment="Center" Padding="12,5"
                               Margin="0,0,4,0"
                               IsEnabled="{Binding !IsBusy}">
                         <ComboBox.ItemTemplate>
@@ -69,6 +70,7 @@
                               SelectedIndex="{Binding StoryTypeIndex, Mode=TwoWay}"
                               HorizontalAlignment="Stretch"
                               VerticalAlignment="Center"
+                              VerticalContentAlignment="Center" Padding="12,5"
                               Margin="4,0"
                               IsEnabled="{Binding !IsBusy}"/>
 
@@ -127,6 +129,7 @@
                             <ComboBox Grid.Column="1"
                                       ItemsSource="{x:Static vm:DownloadPageViewModel.EventTypeFilterNames}"
                                       SelectedIndex="{Binding EventTypeFilter, Mode=TwoWay}"
+                                      VerticalContentAlignment="Center" Padding="12,5"
                                       HorizontalAlignment="Left" MinWidth="220"
                                       IsEnabled="{Binding !IsBusy}"/>
                         </Grid>
@@ -143,12 +146,13 @@
                                   ItemsSource="{Binding SpecialTitles}"
                                   SelectedItem="{Binding SelectedSpecial, Mode=TwoWay}"
                                   HorizontalAlignment="Stretch"
-                                  PlaceholderText="先点 “刷新” 拉取列表"
+                                  VerticalContentAlignment="Center" Padding="12,5"
+                                  PlaceholderText="先点「刷新」拉取列表"
                                   IsEnabled="{Binding !IsBusy}"/>
                     </Grid>
                 </Border>
 
-                <!-- Tab 3：角色剧情角色选择 -->
+                <!-- Tab 3-6：角色剧情角色选择 / Tab 10：主界面语音角色选择 -->
                 <Border BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="10"
                         IsVisible="{Binding IsCardTab}">
                     <Grid ColumnDefinitions="Auto,*">
@@ -158,6 +162,28 @@
                                   ItemsSource="{Binding Characters}"
                                   SelectedItem="{Binding SelectedCharacter, Mode=TwoWay}"
                                   HorizontalAlignment="Left" MinWidth="220"
+                                  VerticalContentAlignment="Center" Padding="12,5"
+                                  IsEnabled="{Binding !IsBusy}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate x:DataType="vm:CharacterOption">
+                                    <TextBlock Text="{Binding DisplayWithId}"/>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </Grid>
+                </Border>
+
+                <!-- Tab 10：主界面语音角色选择 -->
+                <Border BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="10"
+                        IsVisible="{Binding IsGreetTab}">
+                    <Grid ColumnDefinitions="Auto,*">
+                        <TextBlock Grid.Column="0" Text="角色："
+                                   VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <ComboBox Grid.Column="1"
+                                  ItemsSource="{Binding Characters}"
+                                  SelectedItem="{Binding SelectedCharacter, Mode=TwoWay}"
+                                  HorizontalAlignment="Left" MinWidth="220"
+                                  VerticalContentAlignment="Center" Padding="12,5"
                                   IsEnabled="{Binding !IsBusy}">
                             <ComboBox.ItemTemplate>
                                 <DataTemplate x:DataType="vm:CharacterOption">
@@ -189,7 +215,8 @@
                                       ItemsSource="{Binding Areas}"
                                       SelectedItem="{Binding SelectedArea, Mode=TwoWay}"
                                       HorizontalAlignment="Stretch"
-                                      PlaceholderText="先点 “刷新” 拉取区域列表"
+                                      VerticalContentAlignment="Center" Padding="12,5"
+                                      PlaceholderText="先点「刷新」拉取区域列表"
                                       IsEnabled="{Binding !IsBusy}">
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate x:DataType="dl:Area">
@@ -205,21 +232,35 @@
             <!-- 候选项列表 -->
             <Border Grid.Row="2"
                     BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="0">
-                <Grid RowDefinitions="Auto,*">
-                    <!-- 候选区头：状态信息 + 全部加入 -->
-                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="12,8">
-                        <TextBlock Grid.Column="0" Text="{Binding StatusMessage}"
-                                   IsVisible="{Binding HasStatus}"
-                                   Foreground="{DynamicResource SystemAccentColor}"
-                                   VerticalAlignment="Center"
-                                   TextWrapping="Wrap"/>
+                <Grid RowDefinitions="Auto,Auto,Auto,*">
+                    <!-- 搜索 + 全部加入 -->
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="12,8,12,4">
+                        <TextBox Grid.Column="0"
+                                 Text="{Binding SearchText, Mode=TwoWay}"
+                                 Watermark="搜索..."
+                                 VerticalAlignment="Center"
+                                 Margin="0,0,8,0"/>
                         <Button Grid.Column="1" Content="全部加入"
                                 Click="OnEnqueueAllClicked"
-                                IsEnabled="{Binding !IsBusy}"
-                                Margin="8,0,0,0"/>
+                                IsEnabled="{Binding !IsBusy}"/>
                     </Grid>
 
-                    <ScrollViewer Grid.Row="1">
+                    <!-- 进度条 -->
+                    <StackPanel Grid.Row="1" Margin="12,0,12,4"
+                                IsVisible="{Binding HasProgress}" Spacing="2">
+                        <ProgressBar Minimum="0" Maximum="1" Value="{Binding Progress}" Height="4"/>
+                        <TextBlock Text="{Binding ProgressText}" FontSize="11" Opacity="0.7"/>
+                    </StackPanel>
+
+                    <!-- 状态信息 -->
+                    <TextBlock Grid.Row="2" Text="{Binding StatusMessage}"
+                               IsVisible="{Binding HasStatus}"
+                               Foreground="{DynamicResource SystemAccentColor}"
+                               Margin="12,0,12,4"
+                               FontSize="11"
+                               TextTrimming="CharacterEllipsis"/>
+
+                    <ScrollViewer Grid.Row="3">
                         <ItemsControl ItemsSource="{Binding Candidates}" Margin="6">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="vm:DownloadCandidate">
@@ -301,7 +342,7 @@
                 </ScrollViewer>
 
                 <TextBlock Grid.Row="2" Margin="6,4"
-                           Text="{Binding Tasks.Count, StringFormat='共 {0} 项'}"
+                           Text="{Binding TasksSummary}"
                            FontSize="11" Opacity="0.7"
                            HorizontalAlignment="Center"/>
             </Grid>

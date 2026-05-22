@@ -130,18 +130,12 @@
         </Grid>
 
         <!-- 中间可拖拽分割线 -->
-        <GridSplitter Grid.Column="1" Width="8" Background="Transparent"
-                      ResizeDirection="Columns">
-            <GridSplitter.Template>
-                <ControlTemplate>
-                    <Border Background="Transparent" Width="8" Cursor="SizeWestEast">
-                        <Border Width="1" HorizontalAlignment="Center"
-                                Background="{DynamicResource ControlStrokeColorDefaultBrush}"
-                                Margin="0,12"/>
-                    </Border>
-                </ControlTemplate>
-            </GridSplitter.Template>
-        </GridSplitter>
+        <Border Grid.Column="1" Width="12" Background="Transparent"
+                Cursor="SizeWestEast" Name="ColumnSplitter">
+            <Border Width="1" HorizontalAlignment="Center"
+                    Background="{DynamicResource ControlStrokeColorDefaultBrush}"
+                    Margin="0,12" IsHitTestVisible="False"/>
+        </Border>
 
         <!-- 右列：M1.A 暂为占位（M1.B 会接入行卡片虚拟化列表） -->
         <Grid Grid.Column="2" RowDefinitions="Auto,*,Auto" Margin="4,12,12,12" ClipToBounds="True">

@@ -65,8 +65,19 @@ public static class SuppressRuntimeService
         var encoderMap = new Dictionary<string, VideoEncoder>
         {
             ["h264_videotoolbox"] = VideoEncoder.H264VideoToolbox,
+            ["hevc_videotoolbox"] = VideoEncoder.HevcVideoToolbox,
             ["h264_nvenc"] = VideoEncoder.H264Nvenc,
+            ["hevc_nvenc"] = VideoEncoder.HevcNvenc,
+            ["av1_nvenc"] = VideoEncoder.Av1Nvenc,
             ["h264_qsv"] = VideoEncoder.H264Qsv,
+            ["hevc_qsv"] = VideoEncoder.HevcQsv,
+            ["av1_qsv"] = VideoEncoder.Av1Qsv,
+        };
+
+        var softwareMap = new Dictionary<string, VideoEncoder>
+        {
+            ["libx265"] = VideoEncoder.Libx265,
+            ["libsvtav1"] = VideoEncoder.LibSvtAv1,
         };
 
         try
@@ -88,6 +99,12 @@ public static class SuppressRuntimeService
             await proc.WaitForExitAsync();
 
             foreach (var (name, encoder) in encoderMap)
+            {
+                if (output.Contains(name))
+                    available.Add(encoder);
+            }
+
+            foreach (var (name, encoder) in softwareMap)
             {
                 if (output.Contains(name))
                     available.Add(encoder);

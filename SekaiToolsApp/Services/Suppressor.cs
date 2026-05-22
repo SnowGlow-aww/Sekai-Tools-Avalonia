@@ -178,6 +178,8 @@ public sealed partial class Suppressor : IDisposable
 
         _vProcess.Start();
         _fProcess.Start();
+        BoostProcessPriority(_vProcess);
+        BoostProcessPriority(_fProcess);
 
         _pipeTask = Task.Run(() => RunPipe(_cts!.Token));
         _logTask = Task.Run(() => RunLogReader(_cts!.Token));
@@ -190,6 +192,7 @@ public sealed partial class Suppressor : IDisposable
 
         _fProcess = CreateFfmpegOnlyProcess(_runtime.FfmpegPath);
         _fProcess.Start();
+        BoostProcessPriority(_fProcess);
 
         _logTask = Task.Run(() => RunLogReader(_cts!.Token));
     }
@@ -516,10 +519,23 @@ public sealed partial class Suppressor : IDisposable
     {
         if (!_options.UseHwAccelDecode) return;
 
+        var hasSubtitle = !string.IsNullOrWhiteSpace(_options.SourceSubtitle)
+                          && File.Exists(_options.SourceSubtitle);
+
         if (OperatingSystem.IsMacOS())
         {
             args.Add("-hwaccel");
             args.Add("videotoolbox");
+        }
+        else if (_options.PreferredEncoder is VideoEncoder.H264Nvenc or VideoEncoder.HevcNvenc or VideoEncoder.Av1Nvenc)
+        {
+            args.Add("-hwaccel");
+            args.Add("cuda");
+            if (!hasSubtitle)
+            {
+                args.Add("-hwaccel_output_format");
+                args.Add("cuda");
+            }
         }
         else
         {
@@ -539,22 +555,102 @@ public sealed partial class Suppressor : IDisposable
                 args.Add("65");
                 args.Add("-profile:v");
                 args.Add("high");
+                args.Add("-allow_sw");
+                args.Add("1");
+                break;
+            case VideoEncoder.HevcVideoToolbox:
+                args.Add("-c:v");
+                args.Add("hevc_videotoolbox");
+                args.Add("-q:v");
+                args.Add("65");
+                args.Add("-allow_sw");
+                args.Add("1");
+                args.Add("-tag:v");
+                args.Add("hvc1");
                 break;
             case VideoEncoder.H264Nvenc:
                 args.Add("-c:v");
                 args.Add("h264_nvenc");
                 args.Add("-preset");
-                args.Add("p4");
+                args.Add("p1");
+                args.Add("-tune");
+                args.Add("ull");
+                args.Add("-rc");
+                args.Add("vbr");
                 args.Add("-cq");
                 args.Add(_options.Crf.ToString());
                 args.Add("-profile:v");
                 args.Add("high");
+                args.Add("-multipass");
+                args.Add("0");
+                break;
+            case VideoEncoder.HevcNvenc:
+                args.Add("-c:v");
+                args.Add("hevc_nvenc");
+                args.Add("-preset");
+                args.Add("p1");
+                args.Add("-tune");
+                args.Add("ull");
+                args.Add("-rc");
+                args.Add("vbr");
+                args.Add("-cq");
+                args.Add(_options.Crf.ToString());
+                args.Add("-multipass");
+                args.Add("0");
+                args.Add("-tag:v");
+                args.Add("hvc1");
                 break;
             case VideoEncoder.H264Qsv:
                 args.Add("-c:v");
                 args.Add("h264_qsv");
                 args.Add("-global_quality");
                 args.Add(_options.Crf.ToString());
+                break;
+            case VideoEncoder.HevcQsv:
+                args.Add("-c:v");
+                args.Add("hevc_qsv");
+                args.Add("-global_quality");
+                args.Add(_options.Crf.ToString());
+                args.Add("-tag:v");
+                args.Add("hvc1");
+                break;
+            case VideoEncoder.Libx265:
+                args.Add("-c:v");
+                args.Add("libx265");
+                args.Add("-crf");
+                args.Add(_options.Crf.ToString());
+                args.Add("-preset");
+                args.Add("medium");
+                args.Add("-tag:v");
+                args.Add("hvc1");
+                break;
+            case VideoEncoder.Av1Nvenc:
+                args.Add("-c:v");
+                args.Add("av1_nvenc");
+                args.Add("-preset");
+                args.Add("p1");
+                args.Add("-tune");
+                args.Add("ull");
+                args.Add("-rc");
+                args.Add("vbr");
+                args.Add("-cq");
+                args.Add(_options.Crf.ToString());
+                args.Add("-multipass");
+                args.Add("0");
+                break;
+            case VideoEncoder.Av1Qsv:
+                args.Add("-c:v");
+                args.Add("av1_qsv");
+                args.Add("-global_quality");
+                args.Add(_options.Crf.ToString());
+                break;
+            case VideoEncoder.LibSvtAv1:
+                args.Add("-c:v");
+                args.Add("libsvtav1");
+                args.Add("-crf");
+                args.Add(_options.Crf.ToString());
+                args.Add("-preset");
+                args.Add("8");
                 break;
             default:
                 var x264 = _options.UseComplexConfig
@@ -566,6 +662,16 @@ public sealed partial class Suppressor : IDisposable
                 args.Add(x264);
                 break;
         }
+    }
+
+    private static void BoostProcessPriority(Process? p)
+    {
+        if (p == null) return;
+        try
+        {
+            p.PriorityClass = ProcessPriorityClass.AboveNormal;
+        }
+        catch { /* 权限不足时忽略 */ }
     }
 
     private static void TryKill(Process? p)

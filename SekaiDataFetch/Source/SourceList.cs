@@ -17,6 +17,7 @@ public partial class SourceList(SourceData data)
     public string UnitStories => SourceData.SourceTemplate.Replace("{type}", "unitStories");
     public string SpecialStories => SourceData.SourceTemplate.Replace("{type}", "specialStories");
     public string Areas => SourceData.SourceTemplate.Replace("{type}", "areas");
+    public string SystemLive2ds => SourceData.SourceTemplate.Replace("{type}", "systemLive2ds");
     public string GameCharacters => SourceData.SourceTemplate.Replace("{type}", "gameCharacters");
     public string CharacterProfiles => SourceData.SourceTemplate.Replace("{type}", "characterProfiles");
     public string UnitProfiles => SourceData.SourceTemplate.Replace("{type}", "unitProfiles");

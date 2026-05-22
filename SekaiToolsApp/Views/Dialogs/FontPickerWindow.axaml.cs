@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using SkiaSharp;
 
@@ -115,5 +116,25 @@ public partial class FontPickerWindow : Window
     private void OnCancel(object? sender, RoutedEventArgs e)
     {
         Close(null);
+    }
+
+    private async void OnPickFile(object? sender, RoutedEventArgs e)
+    {
+        var storage = StorageProvider;
+        var files = await storage.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "选择字体文件",
+            AllowMultiple = false,
+            FileTypeFilter = new[]
+            {
+                new FilePickerFileType("字体文件") { Patterns = new[] { "*.ttf", "*.otf", "*.ttc" } },
+                FilePickerFileTypes.All,
+            },
+        });
+
+        if (files.Count == 0) return;
+        var path = files[0].Path.LocalPath;
+        if (!string.IsNullOrEmpty(path))
+            Close(path);
     }
 }

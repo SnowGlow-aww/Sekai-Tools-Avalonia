@@ -44,14 +44,17 @@
             </StackPanel>
         </Panel>
 
-        <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto" Margin="0,12,0,0">
-            <TextBlock Grid.Column="0"
+        <Grid Grid.Row="2" ColumnDefinitions="Auto,*,Auto,Auto" Margin="0,12,0,0">
+            <Button Grid.Column="0" Content="从文件添加..." Click="OnPickFile"/>
+            <TextBlock Grid.Column="1"
                        Name="StatusText"
                        VerticalAlignment="Center"
+                       HorizontalAlignment="Right"
                        Opacity="0.6"
-                       FontSize="11"/>
-            <Button Grid.Column="1" Content="取消" Width="88" Margin="0,0,8,0" Click="OnCancel"/>
-            <Button Grid.Column="2" Content="确定" Width="88" Classes="accent"
+                       FontSize="11"
+                       Margin="8,0"/>
+            <Button Grid.Column="2" Content="取消" Width="88" Margin="0,0,8,0" Click="OnCancel"/>
+            <Button Grid.Column="3" Content="确定" Width="88" Classes="accent"
                     Name="OkButton"
                     IsEnabled="False"
                     Click="OnConfirm"/>

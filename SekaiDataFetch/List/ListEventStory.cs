@@ -56,9 +56,7 @@ public class ListEventStory : BaseListStory
 
     private void GetData(ICollection<EventStory> evStories, ICollection<GameEvent> events)
     {
-        // evStories may not be the same as events
-        // if (evStories.Count != events.Count)
-        // throw new ArgumentException("EventStory and GameEvent count mismatch", nameof(evStories));
+        Data.Clear();
 
         var stories = evStories.ToList();
         stories.Sort((x, y) => x.Id.CompareTo(y.Id));

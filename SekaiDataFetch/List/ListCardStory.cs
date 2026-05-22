@@ -57,6 +57,7 @@ public class ListCardStory : BaseListStory
 
     private void GetData(ICollection<CardEpisode> cardEpisodes, ICollection<Card> cards)
     {
+        Data.Clear();
         foreach (var card in cards)
         {
             var firstPart = cardEpisodes.FirstOrDefault(episode =>

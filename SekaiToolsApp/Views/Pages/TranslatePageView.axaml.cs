@@ -366,7 +366,11 @@ public partial class TranslatePageView : UserControl
 
     private async void OnLoadScriptClicked(object? sender, RoutedEventArgs e)
     {
-        var path = await PickFileAsync("剧本文件", new[] { "*.json", "*.asset" });
+        var downloadDir = Services.SettingsService.Instance.Current.DownloadDirectory;
+        if (string.IsNullOrWhiteSpace(downloadDir))
+            downloadDir = Path.Combine(SekaiToolsCore.ResourceManager.DataBaseDir, "Scripts");
+
+        var path = await PickFileAsync("剧本文件", new[] { "*.json", "*.asset" }, downloadDir);
         if (path is null) return;
 
         try
@@ -528,15 +532,20 @@ public partial class TranslatePageView : UserControl
         return input;
     }
 
-    private async Task<string?> PickFileAsync(string title, string[] patterns)
+    private async Task<string?> PickFileAsync(string title, string[] patterns, string? initialDir = null)
     {
         var topLevel = TopLevel.GetTopLevel(this);
         if (topLevel?.StorageProvider is null) return null;
+
+        IStorageFolder? suggestedStart = null;
+        if (!string.IsNullOrEmpty(initialDir) && Directory.Exists(initialDir))
+            suggestedStart = await topLevel.StorageProvider.TryGetFolderFromPathAsync(initialDir);
 
         var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
             Title = $"选择{title}",
             AllowMultiple = false,
+            SuggestedStartLocation = suggestedStart,
             FileTypeFilter =
             [
                 new FilePickerFileType(title) { Patterns = patterns },

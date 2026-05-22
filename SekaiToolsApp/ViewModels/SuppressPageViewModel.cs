@@ -108,6 +108,30 @@ public partial class SuppressPageViewModel : ViewModelBase
     {
         OnPropertyChanged(nameof(AvailableEncoderNames));
         OnPropertyChanged(nameof(SelectedEncoderIndex));
+        AutoSelectBestEncoder();
+    }
+
+    private void AutoSelectBestEncoder()
+    {
+        if (AvailableEncoders.Count <= 1) return;
+        if (OperatingSystem.IsMacOS() && AvailableEncoders.Contains(VideoEncoder.HevcVideoToolbox))
+            SelectedEncoder = VideoEncoder.HevcVideoToolbox;
+        else if (OperatingSystem.IsMacOS() && AvailableEncoders.Contains(VideoEncoder.H264VideoToolbox))
+            SelectedEncoder = VideoEncoder.H264VideoToolbox;
+        else if (AvailableEncoders.Contains(VideoEncoder.Av1Nvenc))
+            SelectedEncoder = VideoEncoder.Av1Nvenc;
+        else if (AvailableEncoders.Contains(VideoEncoder.HevcNvenc))
+            SelectedEncoder = VideoEncoder.HevcNvenc;
+        else if (AvailableEncoders.Contains(VideoEncoder.H264Nvenc))
+            SelectedEncoder = VideoEncoder.H264Nvenc;
+        else if (AvailableEncoders.Contains(VideoEncoder.Av1Qsv))
+            SelectedEncoder = VideoEncoder.Av1Qsv;
+        else if (AvailableEncoders.Contains(VideoEncoder.HevcQsv))
+            SelectedEncoder = VideoEncoder.HevcQsv;
+        else if (AvailableEncoders.Contains(VideoEncoder.H264Qsv))
+            SelectedEncoder = VideoEncoder.H264Qsv;
+        else
+            SelectedEncoder = AvailableEncoders[^1];
     }
 
     partial void OnSelectedEncoderChanged(VideoEncoder value)
@@ -280,7 +304,7 @@ public partial class SuppressPageViewModel : ViewModelBase
         SuppressCrf = 21;
         UseComplexConfig = true;
         SourceFrameCount = 0;
-        SelectedEncoder = VideoEncoder.Libx264;
+        AutoSelectBestEncoder();
         UseHwAccelDecode = true;
     }
 }

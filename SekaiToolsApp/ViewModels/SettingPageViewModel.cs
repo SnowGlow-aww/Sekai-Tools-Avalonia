@@ -35,7 +35,11 @@ public partial class SettingPageViewModel : ViewModelBase
         LoadFromService();
     }
 
-    public string AppVersion => Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0.0";
+    public string AppVersion =>
+        Assembly.GetExecutingAssembly()
+            .GetCustomAttribute<System.Reflection.AssemblyInformationalVersionAttribute>()?.InformationalVersion
+        ?? Assembly.GetExecutingAssembly().GetName().Version?.ToString()
+        ?? "0.0.0";
 
     [ObservableProperty] private int _currentApplicationTheme;
 

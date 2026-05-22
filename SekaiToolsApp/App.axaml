@@ -7,6 +7,15 @@
 
     <Application.Styles>
         <sty:FluentAvaloniaTheme/>
+        <Style Selector="ComboBox /template/ ContentPresenter#ContentPresenter">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="TextBox">
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="RadioButton">
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
     </Application.Styles>
 
 </Application>

@@ -315,8 +315,6 @@ public partial class SuppressPageView : UserControl
                     await Dispatcher.UIThread.InvokeAsync(() =>
                     {
                         _viewModel.AvailableEncoders = encoders;
-                        if (encoders.Count > 1)
-                            _viewModel.SelectedEncoder = encoders[1];
                     }).GetTask();
                 }
             }

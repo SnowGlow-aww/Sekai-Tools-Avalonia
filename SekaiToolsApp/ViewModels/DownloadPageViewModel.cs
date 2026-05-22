@@ -43,8 +43,14 @@ public partial class DownloadPageViewModel : ViewModelBase
         "主线剧情",
         "活动剧情",
         "特殊剧情",
-        "角色剧情",
-        "地图对话",
+        "活动卡面",
+        "特殊卡面",
+        "初始卡面",
+        "升级卡面",
+        "初始地图对话",
+        "升级地图对话",
+        "追加地图对话",
+        "主界面语音",
     ];
 
     /// <summary>活动剧情按 GameEvent.EventType 过滤。索引和上游 WPF EventStoryTab 的 BoxType 保持一致。</summary>
@@ -63,6 +69,11 @@ public partial class DownloadPageViewModel : ViewModelBase
     [ObservableProperty] private bool _isRefreshing;
     [ObservableProperty] private bool _isDownloading;
     [ObservableProperty] private string _statusMessage = string.Empty;
+    [ObservableProperty] private string _searchText = string.Empty;
+    [ObservableProperty] private double _progress;
+    [ObservableProperty] private string _progressText = string.Empty;
+
+    public bool HasProgress => IsRefreshing || IsDownloading;
 
     // —— 各 Tab 的过滤状态 ——
     [ObservableProperty] private UnitOption? _selectedUnit;
@@ -83,8 +94,9 @@ public partial class DownloadPageViewModel : ViewModelBase
     public bool IsUnitTab => StoryTypeIndex == 0;
     public bool IsEventTab => StoryTypeIndex == 1;
     public bool IsSpecialTab => StoryTypeIndex == 2;
-    public bool IsCardTab => StoryTypeIndex == 3;
-    public bool IsActionTab => StoryTypeIndex == 4;
+    public bool IsCardTab => StoryTypeIndex is >= 3 and <= 6;
+    public bool IsActionTab => StoryTypeIndex is >= 7 and <= 9;
+    public bool IsGreetTab => StoryTypeIndex == 10;
 
     /// <summary>主线剧情的 6 个团（light_sound / idol / theme_park / street / school_refusal / piapro）。</summary>
     public ObservableCollection<UnitOption> Units { get; } = new();
@@ -109,6 +121,9 @@ public partial class DownloadPageViewModel : ViewModelBase
 
     /// <summary>下载列表（右栏）。</summary>
     public ObservableCollection<DownloadTaskItem> Tasks { get; } = new();
+
+    private readonly Dictionary<string, string> _sizeCache = new();
+    private CancellationTokenSource? _sizeProbeCts;
 
     private readonly DownloadHistoryService _historyService = DownloadHistoryService.Instance;
     private bool _suppressHistoryPersistence;
@@ -233,6 +248,7 @@ public partial class DownloadPageViewModel : ViewModelBase
         ListSpecialStory.Instance.SetProxy(proxy);
         ListCardStory.Instance.SetProxy(proxy);
         ListActionStory.Instance.SetProxy(proxy);
+        ListGreetStory.Instance.SetProxy(proxy);
 
         if (CurrentSource != null)
         {
@@ -243,6 +259,7 @@ public partial class DownloadPageViewModel : ViewModelBase
             ListSpecialStory.Instance.SetSource(CurrentSource);
             ListCardStory.Instance.SetSource(CurrentSource);
             ListActionStory.Instance.SetSource(CurrentSource);
+            ListGreetStory.Instance.SetSource(CurrentSource);
         }
     }
 
@@ -278,6 +295,8 @@ public partial class DownloadPageViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsSpecialTab));
         OnPropertyChanged(nameof(IsCardTab));
         OnPropertyChanged(nameof(IsActionTab));
+        OnPropertyChanged(nameof(IsGreetTab));
+        ReloadAreasForCurrentFilter();
         RebuildCandidates();
     }
 
@@ -293,9 +312,10 @@ public partial class DownloadPageViewModel : ViewModelBase
     partial void OnSelectedCharacterChanged(CharacterOption? value) => RebuildCandidates();
     partial void OnSelectedAreaChanged(Area? value) => RebuildCandidates();
 
-    partial void OnIsRefreshingChanged(bool value) => OnPropertyChanged(nameof(IsBusy));
-    partial void OnIsDownloadingChanged(bool value) => OnPropertyChanged(nameof(IsBusy));
+    partial void OnIsRefreshingChanged(bool value) { OnPropertyChanged(nameof(IsBusy)); OnPropertyChanged(nameof(HasProgress)); }
+    partial void OnIsDownloadingChanged(bool value) { OnPropertyChanged(nameof(IsBusy)); OnPropertyChanged(nameof(HasProgress)); }
     partial void OnStatusMessageChanged(string value) => OnPropertyChanged(nameof(HasStatus));
+    partial void OnSearchTextChanged(string value) => RebuildCandidates();
 
     /// <summary>从对应 List* 缓存重建当前 Tab 的候选列表（不发起网络请求）。</summary>
     public void RebuildCandidates()
@@ -306,9 +326,68 @@ public partial class DownloadPageViewModel : ViewModelBase
             case 0: BuildUnitCandidates(); break;
             case 1: BuildEventCandidates(); break;
             case 2: BuildSpecialCandidates(); break;
-            case 3: BuildCardCandidates(); break;
-            case 4: BuildActionCandidates(); break;
+            case 3: BuildCardCandidates("rarity_4"); break;
+            case 4: BuildCardCandidates("rarity_birthday"); break;
+            case 5: BuildCardCandidates("rarity_1", "rarity_2"); break;
+            case 6: BuildCardCandidates("rarity_3"); break;
+            case 7: BuildActionCandidates(ActionFilter.Initial); break;
+            case 8: BuildActionCandidates(ActionFilter.Upgrade); break;
+            case 9: BuildActionCandidates(ActionFilter.Additional); break;
+            case 10: BuildGreetCandidates(); break;
         }
+
+        if (!string.IsNullOrWhiteSpace(SearchText))
+        {
+            var query = SearchText.Trim();
+            var toRemove = Candidates.Where(c => !c.BaseTitle.Contains(query, StringComparison.OrdinalIgnoreCase)).ToList();
+            foreach (var item in toRemove)
+                Candidates.Remove(item);
+        }
+
+        _ = ProbeCandidateSizesAsync();
+    }
+
+    private async Task ProbeCandidateSizesAsync()
+    {
+        _sizeProbeCts?.Cancel();
+        _sizeProbeCts = new CancellationTokenSource();
+        var ct = _sizeProbeCts.Token;
+
+        var candidates = Candidates.ToList();
+        if (candidates.Count == 0 || CurrentSource == null) return;
+        SourceList.Instance.SourceData = CurrentSource;
+
+        using var http = new HttpClient(BuildHttpHandler()) { Timeout = TimeSpan.FromSeconds(10) };
+        var semaphore = new SemaphoreSlim(6);
+
+        var tasks = candidates.Select(async c =>
+        {
+            await semaphore.WaitAsync(ct);
+            try
+            {
+                if (ct.IsCancellationRequested) return;
+                var url = c.UrlBuilder();
+                if (_sizeCache.TryGetValue(url, out var cached))
+                {
+                    c.SizeText = cached;
+                    return;
+                }
+                using var req = new HttpRequestMessage(HttpMethod.Head, url);
+                using var resp = await http.SendAsync(req, ct);
+                if (resp.Content.Headers.ContentLength is { } len)
+                {
+                    var size = FormatSize(len);
+                    _sizeCache[url] = size;
+                    c.SizeText = size;
+                    c.ContentLength = len;
+                }
+            }
+            catch { /* ignore probe failures */ }
+            finally { semaphore.Release(); }
+        });
+
+        try { await Task.WhenAll(tasks); }
+        catch (OperationCanceledException) { }
     }
 
     private void BuildUnitCandidates()
@@ -317,11 +396,11 @@ public partial class DownloadPageViewModel : ViewModelBase
         var data = ListUnitStory.Instance.Data;
         if (!data.TryGetValue(SelectedUnit.Key, out var unitSet)) return;
 
-        foreach (var chapter in unitSet.Chapters)
+        foreach (var chapter in unitSet.Chapters.Reverse())
         {
             var ab = chapter.AssetBundleName;
             var chapterName = chapter.Name;
-            foreach (var ep in chapter.Episodes)
+            foreach (var ep in chapter.Episodes.Reverse())
             {
                 var scenarioId = ep.ScenarioId;
                 var key = ep.Key;
@@ -394,7 +473,7 @@ public partial class DownloadPageViewModel : ViewModelBase
         var filtered = sets
             .Where(s => allowedTypes.Contains(s.GameEvent.EventType))
             .Where(s => PassesBannerFilter(s, included))
-            .OrderBy(s => s.EventStory.EventId)
+            .OrderByDescending(s => s.EventStory.EventId)
             .ToList();
 
         foreach (var set in filtered)
@@ -405,7 +484,7 @@ public partial class DownloadPageViewModel : ViewModelBase
             foreach (var ep in set.EventStory.EventStoryEpisodes)
             {
                 var scenarioId = ep.ScenarioId;
-                var title = $"No.{eventId} {eventName} - 第 {ep.EpisodeNo} 话 {ep.Title}";
+                var title = $"No.{eventId} {eventName} - {ep.EpisodeNo} {ep.Title}";
                 Candidates.Add(new DownloadCandidate(
                     title: title,
                     urlBuilder: () => SourceList.Instance.EventStory(scenarioId, ab)));
@@ -419,9 +498,8 @@ public partial class DownloadPageViewModel : ViewModelBase
         var data = ListSpecialStory.Instance.Data;
         if (!data.TryGetValue(SelectedSpecial!, out var set)) return;
 
-        foreach (var ep in set.Episodes)
+        foreach (var ep in set.Episodes.Reverse())
         {
-            // 闭包捕获：episode 引用本身 OK，因 SourceList.SpecialStory 内部按需取 ScenarioId/AssetBundleName。
             var captured = ep;
             Candidates.Add(new DownloadCandidate(
                 title: ep.Title,
@@ -429,14 +507,17 @@ public partial class DownloadPageViewModel : ViewModelBase
         }
     }
 
-    private void BuildCardCandidates()
+    private void BuildCardCandidates(params string[] rarityTypes)
     {
         if (SelectedCharacter == null) return;
         var data = ListCardStory.Instance.Data;
         if (data.Count == 0) return;
 
         var charId = SelectedCharacter.CharacterId;
-        var matched = data.Where(d => d.Card.CharacterId == charId).ToList();
+        var matched = data
+            .Where(d => d.Card.CharacterId == charId && rarityTypes.Contains(d.Card.CardRarityType))
+            .OrderByDescending(d => d.Card.Id)
+            .ToList();
         foreach (var set in matched)
         {
             var card = set.Card;
@@ -446,38 +527,42 @@ public partial class DownloadPageViewModel : ViewModelBase
                 "2" => "★2",
                 "3" => "★3",
                 "4" => "★4",
-                "birthday" => "生日",
+                "birthday" => "BD",
                 _ => card.CardRarityType,
             };
             var nameBase = $"No.{card.Id} {rarity} {card.Prefix}";
 
-            // 前篇 / 后篇 拆成两条 Candidate：上游 WPF 是合在 CardStoryCard 同一行展开。
             var first = set.FirstPart;
             var second = set.SecondPart;
             Candidates.Add(new DownloadCandidate(
                 title: nameBase + " 前篇",
                 urlBuilder: () => SourceList.Instance.MemberStory(first)));
             Candidates.Add(new DownloadCandidate(
-                title: nameBase + " 后篇",
+                title: nameBase + " 後篇",
                 urlBuilder: () => SourceList.Instance.MemberStory(second)));
         }
     }
 
-    private void BuildActionCandidates()
+    private enum ActionFilter { Initial, Upgrade, Additional }
+
+    private void BuildActionCandidates(ActionFilter filter)
     {
         if (SelectedArea == null) return;
         var areaId = SelectedArea.Id;
+        var area = ListActionStory.Instance.Areas.FirstOrDefault(a => a.Id == areaId);
+        if (area == null) return;
+
         var included = IncludedCharacterIds();
         var sets = ListActionStory.Instance.Data
             .Where(d => d.ActionSet.AreaId == areaId)
             .Where(d => PassesBannerFilter(d, included))
-            .OrderBy(d => d.ActionSet.Id)
+            .Where(d => MatchesActionFilter(d, area, filter))
+            .OrderByDescending(d => d.ActionSet.Id)
             .ToList();
 
         foreach (var set in sets)
         {
             var captured = set;
-            // 字幕命名：scenarioId 取自 ActionSet.ScriptId 更可读，但上游用的是 ActionSet.Id；保留 scriptId/scenarioId 双信息。
             var scenarioId = set.ActionSet.ScenarioId;
             var characters = set.CharacterIds.Length > 0
                 ? "[角色 " + string.Join(", ", set.CharacterIds) + "]"
@@ -489,6 +574,46 @@ public partial class DownloadPageViewModel : ViewModelBase
         }
     }
 
+    private static bool MatchesActionFilter(AreaStorySet set, Area area, ActionFilter filter)
+    {
+        return filter switch
+        {
+            ActionFilter.Initial => area.IsBaseArea && !set.ActionSet.IsNextGrade,
+            ActionFilter.Upgrade => area.IsBaseArea && set.ActionSet.IsNextGrade,
+            ActionFilter.Additional => !area.IsBaseArea,
+            _ => true,
+        };
+    }
+
+    private void BuildGreetCandidates()
+    {
+        if (SelectedCharacter == null) return;
+        var data = ListGreetStory.Instance.Data;
+        if (data.Count == 0) return;
+
+        var charId = SelectedCharacter.CharacterId;
+        var matched = data.Where(d => d.CharacterId == charId).OrderByDescending(d => d.PublishedAt).ToList();
+        foreach (var item in matched)
+        {
+            var serifPreview = item.Serif.Replace("\n", " ");
+            if (serifPreview.Length > 40) serifPreview = serifPreview[..40] + "...";
+            var title = $"[{item.Voice}] {serifPreview}";
+            var captured = item;
+            Candidates.Add(new DownloadCandidate(
+                title: title,
+                urlBuilder: () => BuildGreetVoiceUrl(captured)));
+        }
+    }
+
+    private string BuildGreetVoiceUrl(SystemLive2d item)
+    {
+        if (CurrentSource == null) return "";
+        var baseUrl = CurrentSource.StorageBaseUrl;
+        if (baseUrl.Contains("sekai.best", StringComparison.OrdinalIgnoreCase))
+            return baseUrl + $"sound/systemvoice/{item.AssetbundleName}/{item.Voice}.mp3";
+        return baseUrl + $"startapp/sound/systemvoice/{item.AssetbundleName}/{item.Voice}.mp3";
+    }
+
     /// <summary>
     /// 本地内置的 Moesekai (Exmeaning) JP/CN 数据源。
     /// Moesekai 不是传统 REST API，而是公共静态 master JSON + 资源镜像（见 external-api-moe.md）。
@@ -496,17 +621,6 @@ public partial class DownloadPageViewModel : ViewModelBase
     /// </summary>
     private static readonly SourceData[] MoesekaiSources =
     [
-        new()
-        {
-            SourceName = "Moesekai CN",
-            SourceTemplate = "https://sekaimaster-cn.exmeaning.com/master/{type}.json",
-            StorageBaseUrl = "https://storage.exmeaning.com/sekai-cn-assets/",
-            ActionSetTemplate = "scenario/actionset/{abName}/{scenarioId}.json",
-            MemberStoryTemplate = "character/member/{abName}/{scenarioId}.json",
-            EventStoryTemplate = "event_story/{abName}/scenario/{scenarioId}.json",
-            SpecialStoryTemplate = "scenario/special/{abName}/{scenarioId}.json",
-            UnitStoryTemplate = "scenario/unitstory/{abName}/{scenarioId}.json",
-        },
         new()
         {
             SourceName = "Moesekai JP",
@@ -519,6 +633,18 @@ public partial class DownloadPageViewModel : ViewModelBase
             UnitStoryTemplate = "scenario/unitstory/{abName}/{scenarioId}.json",
         },
     ];
+
+    private static readonly SourceData MoesekaiCn = new()
+    {
+        SourceName = "Moesekai CN",
+        SourceTemplate = "https://sekaimaster-cn.exmeaning.com/master/{type}.json",
+        StorageBaseUrl = "https://storage.exmeaning.com/sekai-cn-assets/",
+        ActionSetTemplate = "scenario/actionset/{abName}/{scenarioId}.json",
+        MemberStoryTemplate = "character/member/{abName}/{scenarioId}.json",
+        EventStoryTemplate = "event_story/{abName}/scenario/{scenarioId}.json",
+        SpecialStoryTemplate = "scenario/special/{abName}/{scenarioId}.json",
+        UnitStoryTemplate = "scenario/unitstory/{abName}/{scenarioId}.json",
+    };
 
     /// <summary>
     /// 拉取远端 <c>source.json</c>，失败时回退到 <see cref="SourceData.Default"/>。
@@ -552,9 +678,16 @@ public partial class DownloadPageViewModel : ViewModelBase
             baseList = SourceData.Default;
         }
 
-        // Moesekai 排最前，其余源追加在后（去重）
-        var existingNames = MoesekaiSources.Select(s => s.SourceName).ToHashSet();
-        var merged = MoesekaiSources.Concat(baseList.Where(s => !existingNames.Contains(s.SourceName))).ToArray();
+        // Moesekai JP 排最前，Haruki 排在 Sekai Best 前，Moesekai CN 排最后（去重）
+        var builtinNames = MoesekaiSources.Select(s => s.SourceName).Append(MoesekaiCn.SourceName).ToHashSet();
+        var others = baseList.Where(s => !builtinNames.Contains(s.SourceName)).ToList();
+        var haruki = others.Where(s => s.SourceName.Contains("Haruki", StringComparison.OrdinalIgnoreCase)).ToList();
+        var rest = others.Where(s => !s.SourceName.Contains("Haruki", StringComparison.OrdinalIgnoreCase)).ToList();
+        var merged = MoesekaiSources
+            .Concat(haruki)
+            .Concat(rest)
+            .Append(MoesekaiCn)
+            .ToArray();
         return merged;
     }
 
@@ -585,8 +718,9 @@ public partial class DownloadPageViewModel : ViewModelBase
             0 => ListUnitStory.Instance,
             1 => ListEventStory.Instance,
             2 => ListSpecialStory.Instance,
-            3 => ListCardStory.Instance,
-            4 => ListActionStory.Instance,
+            >= 3 and <= 6 => ListCardStory.Instance,
+            >= 7 and <= 9 => ListActionStory.Instance,
+            10 => ListGreetStory.Instance,
             _ => throw new InvalidOperationException("未知 StoryTypeIndex: " + StoryTypeIndex),
         };
 
@@ -595,7 +729,11 @@ public partial class DownloadPageViewModel : ViewModelBase
 
         try
         {
-            await FetchAndCacheViaReflectionAsync(listInstance, probe);
+            await FetchAndCacheViaReflectionAsync(listInstance, probe, (current, total, name) =>
+            {
+                Progress = (double)current / total;
+                ProgressText = $"({current}/{total}) {name}";
+            });
         }
         catch (Exception ex)
         {
@@ -610,8 +748,9 @@ public partial class DownloadPageViewModel : ViewModelBase
     /// <summary>
     /// 用反射读取 <see cref="BaseListStory"/> 子类上的 <c>[SourcePath]</c> / <c>[CachePath]</c> 属性，
     /// 然后用本地 HttpClient 直接 fetch + write cache，最后反射调 <c>Load()</c>。
+    /// 直接使用选中源的 URL（Moesekai JP 等 JP 源本身就是日文数据）。
     /// </summary>
-    private static async Task FetchAndCacheViaReflectionAsync(BaseListStory listInstance, List<string> probe)
+    private static async Task FetchAndCacheViaReflectionAsync(BaseListStory listInstance, List<string> probe, Action<int, int, string>? onProgress = null)
     {
         var type = listInstance.GetType();
         var props = type.GetProperties(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
@@ -633,9 +772,11 @@ public partial class DownloadPageViewModel : ViewModelBase
             return;
         }
 
-        using var http = new HttpClient(BuildHttpHandler()) { Timeout = TimeSpan.FromSeconds(30) };
-        foreach (var key in keys)
+        using var http = new HttpClient(BuildHttpHandler()) { Timeout = TimeSpan.FromSeconds(120) };
+        for (var i = 0; i < keys.Count; i++)
         {
+            var key = keys[i];
+            onProgress?.Invoke(i + 1, keys.Count, key);
             var url = sources[key];
             var cachePath = caches[key];
             try
@@ -649,6 +790,8 @@ public partial class DownloadPageViewModel : ViewModelBase
                 var body = await resp.Content.ReadAsStringAsync();
                 Directory.CreateDirectory(Path.GetDirectoryName(cachePath)!);
                 await File.WriteAllTextAsync(cachePath, body);
+                var size = FormatSize(body.Length);
+                onProgress?.Invoke(i + 1, keys.Count, $"{key} ({size})");
                 probe.Add($"{key}: {body.Length}B");
             }
             catch (Exception ex)
@@ -680,8 +823,9 @@ public partial class DownloadPageViewModel : ViewModelBase
                 : 0,
         1 => ListEventStory.Instance.Data.Count,
         2 => ListSpecialStory.Instance.Data.Count,
-        3 => ListCardStory.Instance.Data.Count,
-        4 => ListActionStory.Instance.Data.Count,
+        >= 3 and <= 6 => ListCardStory.Instance.Data.Count,
+        >= 7 and <= 9 => ListActionStory.Instance.Data.Count,
+        10 => ListGreetStory.Instance.Data.Count,
         _ => 0,
     };
 
@@ -710,6 +854,31 @@ public partial class DownloadPageViewModel : ViewModelBase
             : Areas.FirstOrDefault();
     }
 
+    private void ReloadAreasForCurrentFilter()
+    {
+        if (!IsActionTab) return;
+        var filter = StoryTypeIndex switch
+        {
+            7 => ActionFilter.Initial,
+            8 => ActionFilter.Upgrade,
+            _ => ActionFilter.Additional,
+        };
+        var preservedId = SelectedArea?.Id;
+        Areas.Clear();
+        var allAreas = ListActionStory.Instance.Areas;
+        var filtered = filter switch
+        {
+            ActionFilter.Initial or ActionFilter.Upgrade => allAreas.Where(a => a.IsBaseArea),
+            ActionFilter.Additional => allAreas.Where(a => !a.IsBaseArea),
+            _ => allAreas,
+        };
+        foreach (var area in filtered.OrderBy(a => a.Id))
+            Areas.Add(area);
+        SelectedArea = preservedId.HasValue
+            ? Areas.FirstOrDefault(a => a.Id == preservedId.Value) ?? Areas.FirstOrDefault()
+            : Areas.FirstOrDefault();
+    }
+
     /// <summary>把候选项加入下载列表（去重：同 url 不重复添加）。</summary>
     public void EnqueueCandidate(DownloadCandidate candidate)
     {
@@ -721,7 +890,8 @@ public partial class DownloadPageViewModel : ViewModelBase
         if (Tasks.Any(t => t.Url == url)) return;
 
         var tag = CurrentSource.SourceName + " - " + candidate.Title;
-        Tasks.Add(new DownloadTaskItem(tag, url));
+        Tasks.Add(new DownloadTaskItem(tag, url, candidate.ContentLength));
+        OnPropertyChanged(nameof(TasksSummary));
         PersistHistory();
     }
 
@@ -734,7 +904,37 @@ public partial class DownloadPageViewModel : ViewModelBase
     public void ClearTasks()
     {
         Tasks.Clear();
+        OnPropertyChanged(nameof(TasksSummary));
         PersistHistory();
+    }
+
+    public string TasksSummary
+    {
+        get
+        {
+            var count = Tasks.Count;
+            var totalBytes = Tasks.Sum(t => t.ContentLength);
+            var saveDir = SettingsService.Instance.Current.DownloadDirectory;
+            if (string.IsNullOrWhiteSpace(saveDir))
+                saveDir = Path.Combine(ResourceManager.DataBaseDir, "Scripts");
+
+            var parts = new List<string> { $"共 {count} 项" };
+            if (totalBytes > 0)
+                parts.Add($"总计 {FormatSize(totalBytes)}");
+
+            try
+            {
+                var root = Path.GetPathRoot(Path.GetFullPath(saveDir));
+                if (!string.IsNullOrEmpty(root))
+                {
+                    var drive = new DriveInfo(root);
+                    parts.Add($"可用 {FormatSize(drive.AvailableFreeSpace)}");
+                }
+            }
+            catch { /* ignore */ }
+
+            return string.Join(" | ", parts);
+        }
     }
 
     /// <summary>串行下载 <see cref="Tasks"/> 中所有未完成项；HttpClient 按当前代理设置构建。</summary>
@@ -751,11 +951,17 @@ public partial class DownloadPageViewModel : ViewModelBase
             Timeout = TimeSpan.FromSeconds(30),
         };
 
-        foreach (var task in Tasks.ToList())
+        var items = Tasks.ToList();
+        var total = items.Count;
+        var done = 0;
+
+        foreach (var task in items)
         {
             if (ct.IsCancellationRequested) break;
-            if (task.Status == DownloadStatus.Done) continue;
+            if (task.Status == DownloadStatus.Done) { done++; continue; }
 
+            Progress = (double)done / total;
+            ProgressText = $"({done}/{total}) {task.Tag}";
             task.Status = DownloadStatus.Downloading;
             try
             {
@@ -764,6 +970,7 @@ public partial class DownloadPageViewModel : ViewModelBase
                 await File.WriteAllTextAsync(path, content, ct);
                 task.SavePath = path;
                 task.Status = DownloadStatus.Done;
+                ProgressText = $"({done}/{total}) {task.Tag} ({FormatSize(content.Length)})";
                 PersistHistory();
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested)
@@ -776,8 +983,11 @@ public partial class DownloadPageViewModel : ViewModelBase
                 task.Status = DownloadStatus.Failed;
                 PersistHistory();
             }
+            done++;
         }
 
+        Progress = 1.0;
+        ProgressText = $"完成 {done}/{total}";
         PersistHistory();
     }
 
@@ -808,6 +1018,16 @@ public partial class DownloadPageViewModel : ViewModelBase
         return looksLikeProxy
             ? $"{msg}\n   {proxyDesc}\n   请到 设置 → 代理 检查代理地址是否可用，或改为'系统默认'。"
             : msg;
+    }
+
+    private static string FormatSize(long bytes)
+    {
+        return bytes switch
+        {
+            >= 1_048_576 => $"{bytes / 1048576.0:F1}MB",
+            >= 1024 => $"{bytes / 1024.0:F1}KB",
+            _ => $"{bytes}B",
+        };
     }
 
     /// <summary>
@@ -930,10 +1150,14 @@ public sealed partial class BannerUnitRow : ObservableObject
 }
 
 /// <summary>当前 Tab 选项下的一条候选下载项：标题 + URL 计算函数（延迟到加入任务时再求值）。</summary>
-public sealed class DownloadCandidate(string title, Func<string> urlBuilder)
+public sealed partial class DownloadCandidate(string title, Func<string> urlBuilder) : ObservableObject
 {
-    public string Title { get; } = title;
+    public string BaseTitle { get; } = title;
     public Func<string> UrlBuilder { get; } = urlBuilder;
+    public long ContentLength { get; set; }
+    [ObservableProperty] private string _sizeText = string.Empty;
+    public string Title => string.IsNullOrEmpty(SizeText) ? BaseTitle : $"{BaseTitle} ({SizeText})";
+    partial void OnSizeTextChanged(string value) => OnPropertyChanged(nameof(Title));
 }
 
 /// <summary>下载列表条目的持久化快照。</summary>
@@ -957,12 +1181,14 @@ public enum DownloadStatus
 /// <summary>下载列表中的一项；可在下载过程中变更状态以便 UI 颜色切换。</summary>
 public partial class DownloadTaskItem : ObservableObject
 {
-    public DownloadTaskItem(string tag, string url)
+    public DownloadTaskItem(string tag, string url, long contentLength = 0)
     {
         _tag = tag;
         _url = url;
+        ContentLength = contentLength;
     }
 
+    public long ContentLength { get; set; }
     [ObservableProperty] private string _tag;
     [ObservableProperty] private string _url;
     [ObservableProperty] private DownloadStatus _status = DownloadStatus.Pending;

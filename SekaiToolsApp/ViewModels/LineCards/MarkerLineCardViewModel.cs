@@ -4,7 +4,6 @@ namespace SekaiToolsApp.ViewModels.LineCards;
 
 /// <summary>
 /// 地点角标行卡片 VM。和横幅结构一致，多了一个 Index 字段（角标顺序）。
-/// 对应原 WPF <c>MarkerLineModel</c>。
 /// </summary>
 public class MarkerLineCardViewModel(MarkerBaseFrameSet set) : LineCardViewModelBase
 {

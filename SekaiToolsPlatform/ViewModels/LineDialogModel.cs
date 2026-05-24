@@ -5,9 +5,7 @@ namespace SekaiToolsPlatform.ViewModels;
 
 /// <summary>
 /// 对话型行：既有发言人 (Original/Translated) 又有正文。
-///
-/// 与原 MAUI 版本相比删掉了 <c>LengthColor</c>（依赖 <c>Microsoft.Maui.Graphics.Color</c>），
-/// UI 端用 <c>TooLong</c> 布尔做颜色 converter；其余字段全部保留以兼容编辑器逻辑。
+/// UI 端用 <c>TooLong</c> 布尔做颜色 converter。
 /// </summary>
 public class LineDialogModel : LineModel
 {

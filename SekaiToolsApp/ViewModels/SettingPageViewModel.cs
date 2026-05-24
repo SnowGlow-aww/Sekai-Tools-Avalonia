@@ -6,15 +6,8 @@ using SekaiToolsApp.Services;
 namespace SekaiToolsApp.ViewModels;
 
 /// <summary>
-/// 设置页 ViewModel。
-///
-/// 设计原则：
-/// - 所有可见属性都是 <see cref="ObservableProperty"/> 注解的 partial 字段；
-/// - 任意属性变更都会自动持久化到 <see cref="SettingsService"/>；
-/// - 主题项变更会立刻应用到当前 Application（无需重启）。
-///
-/// 不再使用原 WPF 的 dictionary-backed <c>ViewModelBase</c>：CommunityToolkit 的源生成器
-/// 提供更好的 IDE / 编译器支持，绑定路径明确。
+/// 设置页 ViewModel。所有可见属性都是 ObservableProperty，任意变更自动持久化。
+/// 主题项变更会立刻应用到当前 Application（无需重启）。
 /// </summary>
 public partial class SettingPageViewModel : ViewModelBase
 {
@@ -105,6 +98,12 @@ public partial class SettingPageViewModel : ViewModelBase
     [ObservableProperty] private bool _exportMarkerMask;
     [ObservableProperty] private bool _exportMarkerText;
     [ObservableProperty] private bool _exportScreenComment;
+    [ObservableProperty] private double _thresholdDialogNametagNormal = 0.70;
+    [ObservableProperty] private double _thresholdDialogNametagSpecial = 0.70;
+    [ObservableProperty] private double _thresholdDialogContentNormal = 0.70;
+    [ObservableProperty] private double _thresholdDialogContentSpecial = 0.70;
+    [ObservableProperty] private double _thresholdBannerNormal = 0.50;
+    [ObservableProperty] private double _thresholdMarkerNormal = 0.50;
     [ObservableProperty] private string _proxyPortError = "";
     [ObservableProperty] private string _typewriterCharTimeError = "";
     [ObservableProperty] private string _typewriterFadeTimeError = "";
@@ -147,6 +146,12 @@ public partial class SettingPageViewModel : ViewModelBase
             ExportMarkerMask = s.ExportMarkerMask;
             ExportMarkerText = s.ExportMarkerText;
             ExportScreenComment = s.ExportScreenComment;
+            ThresholdDialogNametagNormal = s.ThresholdDialogNametagNormal;
+            ThresholdDialogNametagSpecial = s.ThresholdDialogNametagSpecial;
+            ThresholdDialogContentNormal = s.ThresholdDialogContentNormal;
+            ThresholdDialogContentSpecial = s.ThresholdDialogContentSpecial;
+            ThresholdBannerNormal = s.ThresholdBannerNormal;
+            ThresholdMarkerNormal = s.ThresholdMarkerNormal;
         }
         finally
         {
@@ -179,6 +184,12 @@ public partial class SettingPageViewModel : ViewModelBase
         s.ExportMarkerMask = ExportMarkerMask;
         s.ExportMarkerText = ExportMarkerText;
         s.ExportScreenComment = ExportScreenComment;
+        s.ThresholdDialogNametagNormal = ThresholdDialogNametagNormal;
+        s.ThresholdDialogNametagSpecial = ThresholdDialogNametagSpecial;
+        s.ThresholdDialogContentNormal = ThresholdDialogContentNormal;
+        s.ThresholdDialogContentSpecial = ThresholdDialogContentSpecial;
+        s.ThresholdBannerNormal = ThresholdBannerNormal;
+        s.ThresholdMarkerNormal = ThresholdMarkerNormal;
         _settings.Save();
     }
 
@@ -407,6 +418,12 @@ public partial class SettingPageViewModel : ViewModelBase
     partial void OnExportMarkerMaskChanged(bool value) => Persist();
     partial void OnExportMarkerTextChanged(bool value) => Persist();
     partial void OnExportScreenCommentChanged(bool value) => Persist();
+    partial void OnThresholdDialogNametagNormalChanged(double value) => Persist();
+    partial void OnThresholdDialogNametagSpecialChanged(double value) => Persist();
+    partial void OnThresholdDialogContentNormalChanged(double value) => Persist();
+    partial void OnThresholdDialogContentSpecialChanged(double value) => Persist();
+    partial void OnThresholdBannerNormalChanged(double value) => Persist();
+    partial void OnThresholdMarkerNormalChanged(double value) => Persist();
     partial void OnProxyPortErrorChanged(string value) => NotifyValidationStateChanged();
     partial void OnTypewriterCharTimeErrorChanged(string value) => NotifyValidationStateChanged();
     partial void OnTypewriterFadeTimeErrorChanged(string value) => NotifyValidationStateChanged();

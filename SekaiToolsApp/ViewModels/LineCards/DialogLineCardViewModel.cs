@@ -6,7 +6,7 @@ using SekaiToolsCore.Process.Model;
 namespace SekaiToolsApp.ViewModels.LineCards;
 
 /// <summary>
-/// 对话行卡片 VM。对应原 WPF <c>DialogLineModel</c>。
+/// 对话行卡片 VM。
 /// 长行会启用换行分隔符面板（<see cref="UseSeparator"/>），允许调整：
 /// - <see cref="SeparatorContentIndex"/>：把译文按字符切成 part1/part2；
 /// - <see cref="SeparateFrame"/>：决定换行发生在哪一帧。
@@ -16,8 +16,7 @@ namespace SekaiToolsApp.ViewModels.LineCards;
 public partial class DialogLineCardViewModel : LineCardViewModelBase
 {
     /// <summary>
-    /// 单字时间预估（毫秒）。WPF 旧版固定 80ms，这里保持一致以维持原有提示阈值。
-    /// 真正导出时会读用户设置里的打字机参数。
+    /// 单字时间预估（毫秒）。导出时会读用户设置里的打字机参数。
     /// </summary>
     private const int CharTimeMs = 80;
 

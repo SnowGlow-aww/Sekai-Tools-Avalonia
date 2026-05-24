@@ -16,11 +16,8 @@ using SekaiToolsApp.ViewModels;
 namespace SekaiToolsApp.Views.Pages;
 
 /// <summary>
-/// 视频压制页 code-behind。对应原 <c>SekaiToolsGUI/View/Suppress/SuppressPage.xaml(.cs)</c>。
-///
-/// 责任分工与 <see cref="SubtitlePageView"/> 一致：本类做 UI 编排（文件对话框、
-/// 资源引导、生命周期管理），<see cref="Suppressor"/> 跑后台子进程，<see cref="SuppressPageViewModel"/>
-/// 承载状态。Suppressor 回调全在后台线程，UI 通过 <see cref="Dispatcher.UIThread"/> 转发。
+/// 视频压制页 code-behind。本类做 UI 编排（文件对话框、资源引导、生命周期管理），
+/// <see cref="Suppressor"/> 跑后台子进程，<see cref="SuppressPageViewModel"/> 承载状态。
 /// </summary>
 public partial class SuppressPageView : UserControl
 {
@@ -194,9 +191,6 @@ public partial class SuppressPageView : UserControl
 
     private void OnResetClicked(object? sender, RoutedEventArgs e)
     {
-        // 同时承担原 WPF 的"重置任务"与"清除任务"两类按钮：
-        // - 运行中：拒绝（按钮已通过 IsEnabled=CanReset 禁用，这里加一道防线）
-        // - 非运行：杀掉 Suppressor 并清空 VM
         if (_viewModel.IsRunning) return;
 
         _runSessionId++;

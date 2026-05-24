@@ -6,20 +6,13 @@ using System.Text.Unicode;
 namespace SekaiToolsApp.Services;
 
 /// <summary>
-/// 用户配置 POCO；序列化到 <c>%USERPROFILE%/SekaiTools/Data/setting.json</c>。
-///
-/// 为了在迁移期与原 WPF (<c>SekaiToolsGUI</c>) 共享同一份配置，字段名 / 默认值与
-/// <c>SekaiToolsGUI/Model/Setting.cs</c> 完全对齐。
+/// 用户配置 POCO；序列化到 ~/SekaiTools/Data/setting.json。
 /// </summary>
 public sealed class AppSettings
 {
-    public string AppVersion { get; set; } = "1.0.0";
+    public string AppVersion { get; set; } = "1.0.1-pre";
 
-    /// <summary>
-    /// 0 = 跟随系统 / 1 = 浅色 / 2 = 深色。
-    /// 注意：原 WPF 是 0=亮 / 1=暗 / 2=高对比度 / 3=系统；
-    /// Avalonia 没有高对比度变体，迁移层在 <see cref="SettingsService"/> 里做映射。
-    /// </summary>
+    /// <summary>0 = 跟随系统 / 1 = 浅色 / 2 = 深色。</summary>
     public int CurrentApplicationTheme { get; set; } = 0;
 
     public string[] CustomSpecialCharacters { get; set; } = [];
@@ -46,6 +39,13 @@ public sealed class AppSettings
     public bool ExportMarkerMask { get; set; } = true;
     public bool ExportMarkerText { get; set; } = true;
     public bool ExportScreenComment { get; set; } = true;
+
+    public double ThresholdDialogNametagNormal { get; set; } = 0.70;
+    public double ThresholdDialogNametagSpecial { get; set; } = 0.70;
+    public double ThresholdDialogContentNormal { get; set; } = 0.70;
+    public double ThresholdDialogContentSpecial { get; set; } = 0.70;
+    public double ThresholdBannerNormal { get; set; } = 0.50;
+    public double ThresholdMarkerNormal { get; set; } = 0.50;
 
     public static AppSettings CreateDefault() => new();
 
@@ -75,6 +75,12 @@ public sealed class AppSettings
             ExportMarkerMask = ExportMarkerMask,
             ExportMarkerText = ExportMarkerText,
             ExportScreenComment = ExportScreenComment,
+            ThresholdDialogNametagNormal = ThresholdDialogNametagNormal,
+            ThresholdDialogNametagSpecial = ThresholdDialogNametagSpecial,
+            ThresholdDialogContentNormal = ThresholdDialogContentNormal,
+            ThresholdDialogContentSpecial = ThresholdDialogContentSpecial,
+            ThresholdBannerNormal = ThresholdBannerNormal,
+            ThresholdMarkerNormal = ThresholdMarkerNormal,
         };
     }
 

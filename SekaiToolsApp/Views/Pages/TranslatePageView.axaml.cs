@@ -21,14 +21,6 @@ namespace SekaiToolsApp.Views.Pages;
 
 /// <summary>
 /// 翻译工作台 Avalonia 视图。
-///
-/// 取代了之前的 PlaceholderPage 占位实现，UI 1:1 平移自
-/// SekaiToolsMauiText.View.Translate.TranslatePage，同时把数据层指向
-/// SekaiToolsPlatform 项目里的 PlatformSessionService / PlatformStoryService /
-/// LocalTranslationWorkspaceService（M2.1 新建）。
-///
-/// 当前版本未引入 DI 容器：三个 service 在 ctor 内由共享 <see cref="JsonFilePlatformPreferences"/>
-/// 创建一次。等以后整体改 DI（M3 之后）再统一抽出 ServiceProvider。
 /// </summary>
 public partial class TranslatePageView : UserControl
 {

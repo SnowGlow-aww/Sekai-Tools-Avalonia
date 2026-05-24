@@ -1,8 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <!-- 跨平台 net8.0：原 net8.0-windows 仅为承接 GDI+，
-             已在 M1 由 SkiaSharp 替换。 -->
         <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <LangVersion>default</LangVersion>
@@ -13,17 +11,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <!-- 仅保留 OpenCV 托管层；GDI+ 已全部由 SkiaSharp 替代。
-             System.Drawing 命名空间下仅使用 Primitives 中的 Point/Size/Rectangle，
-             这些类型在 BCL 内、不依赖 System.Drawing.Common。 -->
         <PackageReference Include="Emgu.CV" Version="4.12.0.5764"/>
-        <PackageReference Include="System.Text.Json" Version="9.0.0"/>
         <PackageReference Include="SkiaSharp" Version="2.88.9"/>
         <PackageReference Include="HarfBuzzSharp" Version="7.3.0.3"/>
         <PackageReference Include="SkiaSharp.HarfBuzz" Version="2.88.9"/>
     </ItemGroup>
 
-    <!-- Emgu.CV native runtime：按 RID 引入，避免拖入用不到的平台 dll -->
     <ItemGroup Condition="'$(RuntimeIdentifier)' == '' Or $([System.String]::Copy('$(RuntimeIdentifier)').StartsWith('win-'))">
         <PackageReference Include="Emgu.CV.runtime.mini.windows" Version="4.12.0.5764"/>
     </ItemGroup>

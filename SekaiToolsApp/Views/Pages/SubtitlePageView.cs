@@ -24,10 +24,6 @@ namespace SekaiToolsApp.Views.Pages;
 
 /// <summary>
 /// 字幕生成主页 code-behind。
-///
-/// 对应原 <c>SekaiToolsGUI/View/Subtitle/SubtitlePage.xaml(.cs)</c>。M1.A 阶段
-/// 实现：文件三选 / 拖放 / 同名联动 / VideoProcessor 后台运行 / 进度+FPS+ETA / 帧预览。
-/// 行卡片渲染、QuickEdit、SaveFile 等留给 M1.B / M1.C。
 /// </summary>
 public partial class SubtitlePageView : UserControl
 {

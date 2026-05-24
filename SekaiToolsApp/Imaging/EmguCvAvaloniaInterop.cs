@@ -9,20 +9,13 @@ using Emgu.CV.Structure;
 namespace SekaiToolsApp.Imaging;
 
 /// <summary>
-/// 把 Emgu.CV 的 <see cref="Mat"/> 渡到 Avalonia 的位图类型上，跨平台替代原 WPF
-/// 的 <c>Mat.ToBitmapSource()</c>。
-///
-/// 单次显示请用 <see cref="ToAvaloniaBitmap"/>；视频/帧预览的高频场景请预先创建
-/// <see cref="WriteableBitmap"/>，用 <see cref="WriteTo"/> 反复写入避免重复分配。
+/// Emgu.CV Mat 与 Avalonia Bitmap 之间的转换工具。
+/// 单次显示用 <see cref="ToAvaloniaBitmap"/>；高频帧预览用 <see cref="WriteTo"/>。
 /// </summary>
 public static class EmguCvAvaloniaInterop
 {
     private static readonly Vector DefaultDpi = new(96, 96);
 
-    /// <summary>
-    /// 拷贝 <paramref name="source"/> 像素到一张新的 Avalonia <see cref="Bitmap"/>。
-    /// 返回的 Bitmap 与原 Mat 解耦，可以在 Mat 释放后继续使用。
-    /// </summary>
     public static Bitmap ToAvaloniaBitmap(Mat source)
     {
         if (source is null) throw new ArgumentNullException(nameof(source));
@@ -39,10 +32,6 @@ public static class EmguCvAvaloniaInterop
             bgra.Step);
     }
 
-    /// <summary>
-    /// 把 <paramref name="source"/> 像素写入已有的 <see cref="WriteableBitmap"/>。
-    /// 要求 <paramref name="target"/> 的尺寸与 <paramref name="source"/> 一致；尺寸不一致返回 false 由调用方重新创建。
-    /// </summary>
     public static bool WriteTo(Mat source, WriteableBitmap target)
     {
         if (source is null) throw new ArgumentNullException(nameof(source));
@@ -87,10 +76,6 @@ public static class EmguCvAvaloniaInterop
         return true;
     }
 
-    /// <summary>
-    /// 创建一个尺寸与 <paramref name="reference"/> 一致、像素格式 BGRA8888 的可写位图，
-    /// 用于配合 <see cref="WriteTo"/> 做帧预览。
-    /// </summary>
     public static WriteableBitmap CreateWriteableBitmap(Mat reference)
     {
         if (reference is null) throw new ArgumentNullException(nameof(reference));
@@ -100,7 +85,6 @@ public static class EmguCvAvaloniaInterop
 
     private static Mat EnsureBgra(Mat source)
     {
-        // OpenCV 默认 BGR；只支持把常见格式转成 BGRA。
         switch (source.NumberOfChannels)
         {
             case 4:
@@ -128,8 +112,6 @@ public static class EmguCvAvaloniaInterop
 
     private static Mat Clone(Mat source)
     {
-        // Bitmap 构造函数要求像素数据存活，外部 Mat 释放后会引发悬挂指针，
-        // 所以即便 source 已是 BGRA 也复制一份。
         var clone = new Mat();
         source.CopyTo(clone);
         return clone;

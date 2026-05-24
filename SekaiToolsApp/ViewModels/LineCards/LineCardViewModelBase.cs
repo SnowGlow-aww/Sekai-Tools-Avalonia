@@ -4,8 +4,7 @@ using SekaiToolsCore.Process.FrameSet;
 namespace SekaiToolsApp.ViewModels.LineCards;
 
 /// <summary>
-/// 行卡片 VM 抽象基类。对应原 WPF <c>DialogLineModel/BannerLineModel/MarkerLineModel</c> 的
-/// 共同部分。三类卡片在主页右侧 ItemsControl 内统一渲染，按插入顺序排列。
+/// 行卡片 VM 抽象基类。三类卡片在主页右侧 ItemsControl 内统一渲染，按插入顺序排列。
 /// </summary>
 public abstract partial class LineCardViewModelBase : ViewModelBase
 {

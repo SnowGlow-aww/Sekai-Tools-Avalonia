@@ -136,7 +136,7 @@ public partial class SubtitlePageViewModel : ViewModelBase
     [ObservableProperty] private int _markerCurrent;
 
     /// <summary>
-    /// 三类元素统一行卡片集合，按引擎回调的插入顺序排列（与原 WPF LinePanel 行为一致）。
+    /// 三类元素统一行卡片集合，按引擎回调的插入顺序排列。
     /// 行卡片视图通过 <see cref="LineCardViewModelBase.Visible"/> 控制隐藏，避免重新构造控件。
     /// </summary>
     public ObservableCollection<LineCardViewModelBase> LineCards { get; } = new();
@@ -288,6 +288,15 @@ public partial class SubtitlePageViewModel : ViewModelBase
             {
                 FadeTime = appSettings.TypewriterFadeTime,
                 CharTime = appSettings.TypewriterCharTime,
+            },
+            new MatchingThreshold
+            {
+                DialogNametagNormal = appSettings.ThresholdDialogNametagNormal,
+                DialogNametagSpecial = appSettings.ThresholdDialogNametagSpecial,
+                DialogContentNormal = appSettings.ThresholdDialogContentNormal,
+                DialogContentSpecial = appSettings.ThresholdDialogContentSpecial,
+                BannerNormal = appSettings.ThresholdBannerNormal,
+                MarkerNormal = appSettings.ThresholdMarkerNormal,
             }
         );
     }

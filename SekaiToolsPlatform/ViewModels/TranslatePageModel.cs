@@ -6,9 +6,6 @@ namespace SekaiToolsPlatform.ViewModels;
 
 /// <summary>
 /// 翻译工作台主 ViewModel：会话状态 + 故事级联选择 + 行模型集合 + 上传/同步逻辑。
-///
-/// 平移自原 <c>SekaiToolsMauiText.ViewModel.TranslatePageModel</c>，命名空间换成
-/// <c>SekaiToolsPlatform.ViewModels</c>。无功能改动。
 /// </summary>
 public class TranslatePageModel : ViewModelBase
 {

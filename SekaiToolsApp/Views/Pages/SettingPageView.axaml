@@ -139,6 +139,50 @@
                         BorderThickness="1"
                         CornerRadius="4"
                         Padding="16">
+                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto">
+                        <TextBlock Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Text="%" FontSize="22" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="匹配阈值" FontWeight="SemiBold"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="调整模板匹配的置信度，值越低越容易匹配但可能误匹配" FontSize="12" Opacity="0.7"/>
+
+                        <StackPanel Grid.Row="2" Grid.Column="1" Spacing="8" Margin="0,8,0,0">
+                            <Grid ColumnDefinitions="130,*,50">
+                                <TextBlock Grid.Column="0" Text="对话名牌（普通）" VerticalAlignment="Center"/>
+                                <Slider Grid.Column="1" Minimum="0.1" Maximum="1" SmallChange="0.01" LargeChange="0.05" TickFrequency="0.05" Value="{Binding ThresholdDialogNametagNormal, Mode=TwoWay}"/>
+                                <TextBlock Grid.Column="2" Text="{Binding ThresholdDialogNametagNormal, StringFormat={}{0:F2}}" VerticalAlignment="Center"/>
+                            </Grid>
+                            <Grid ColumnDefinitions="130,*,50">
+                                <TextBlock Grid.Column="0" Text="对话名牌（特殊）" VerticalAlignment="Center"/>
+                                <Slider Grid.Column="1" Minimum="0.1" Maximum="1" SmallChange="0.01" LargeChange="0.05" TickFrequency="0.05" Value="{Binding ThresholdDialogNametagSpecial, Mode=TwoWay}"/>
+                                <TextBlock Grid.Column="2" Text="{Binding ThresholdDialogNametagSpecial, StringFormat={}{0:F2}}" VerticalAlignment="Center"/>
+                            </Grid>
+                            <Grid ColumnDefinitions="130,*,50">
+                                <TextBlock Grid.Column="0" Text="对话内容（普通）" VerticalAlignment="Center"/>
+                                <Slider Grid.Column="1" Minimum="0.1" Maximum="1" SmallChange="0.01" LargeChange="0.05" TickFrequency="0.05" Value="{Binding ThresholdDialogContentNormal, Mode=TwoWay}"/>
+                                <TextBlock Grid.Column="2" Text="{Binding ThresholdDialogContentNormal, StringFormat={}{0:F2}}" VerticalAlignment="Center"/>
+                            </Grid>
+                            <Grid ColumnDefinitions="130,*,50">
+                                <TextBlock Grid.Column="0" Text="对话内容（特殊）" VerticalAlignment="Center"/>
+                                <Slider Grid.Column="1" Minimum="0.1" Maximum="1" SmallChange="0.01" LargeChange="0.05" TickFrequency="0.05" Value="{Binding ThresholdDialogContentSpecial, Mode=TwoWay}"/>
+                                <TextBlock Grid.Column="2" Text="{Binding ThresholdDialogContentSpecial, StringFormat={}{0:F2}}" VerticalAlignment="Center"/>
+                            </Grid>
+                            <Grid ColumnDefinitions="130,*,50">
+                                <TextBlock Grid.Column="0" Text="横幅" VerticalAlignment="Center"/>
+                                <Slider Grid.Column="1" Minimum="0.1" Maximum="1" SmallChange="0.01" LargeChange="0.05" TickFrequency="0.05" Value="{Binding ThresholdBannerNormal, Mode=TwoWay}"/>
+                                <TextBlock Grid.Column="2" Text="{Binding ThresholdBannerNormal, StringFormat={}{0:F2}}" VerticalAlignment="Center"/>
+                            </Grid>
+                            <Grid ColumnDefinitions="130,*,50">
+                                <TextBlock Grid.Column="0" Text="地点角标" VerticalAlignment="Center"/>
+                                <Slider Grid.Column="1" Minimum="0.1" Maximum="1" SmallChange="0.01" LargeChange="0.05" TickFrequency="0.05" Value="{Binding ThresholdMarkerNormal, Mode=TwoWay}"/>
+                                <TextBlock Grid.Column="2" Text="{Binding ThresholdMarkerNormal, StringFormat={}{0:F2}}" VerticalAlignment="Center"/>
+                            </Grid>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <Border BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        Padding="16">
                     <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
                         <TextBlock Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Text="A" FontSize="22" VerticalAlignment="Center"/>
                         <TextBlock Grid.Row="0" Grid.Column="1" Text="字体自定义" FontWeight="SemiBold"/>

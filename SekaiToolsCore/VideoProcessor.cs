@@ -33,9 +33,6 @@ public class VideoProcessCallbacks
 
 public record ContentLength(int Dialog, int Banner, int Marker);
 
-/// <summary>
-/// 视频处理停止原因
-/// </summary>
 public enum ProcessStopReason
 {
     None, // 未停止或初始状态
@@ -53,16 +50,13 @@ public class VideoProcessor
     private int _consecutiveExceptionCount;
     private const int ExceptionThreshold = 10;
 
-    // 预览图像有界队列（长度 1，只保留最新帧）
     private Channel<Mat>? _previewChannel;
     private Task? _previewConsumerTask;
 
-    // 回调节流
     private long _lastProgressCallbackTime;
     private long _lastFpsCallbackTime;
     private const long CallbackThrottleMs = 200;
 
-    // 处理结果
     public ProcessStopReason StopReason { get; private set; } = ProcessStopReason.None;
 
     public VideoProcessor(Config config, VideoProcessCallbacks callbacks)
@@ -164,16 +158,13 @@ public class VideoProcessor
         var frameCount = capture.Get(CapProp.FrameCount);
         var markerIndexInDialog = MarkerIndexOfDialog();
 
-        // 初始化预览通道（有界队列，容量 1）
         _previewChannel = Channel.CreateBounded<Mat>(new BoundedChannelOptions(1)
         {
             FullMode = BoundedChannelFullMode.DropOldest
         });
 
-        // 启动预览消费任务
         _previewConsumerTask = StartPreviewConsumer(_previewChannel, token);
 
-        // Debug usage
         if (int.TryParse(Environment.GetEnvironmentVariable("DebugFrameID"), out var debugFrameId))
         {
             var targetString = Environment.GetEnvironmentVariable("DebugTargetString");
@@ -225,13 +216,11 @@ public class VideoProcessor
                 frameIndex = (int)capture.Get(CapProp.PosFrames);
                 var progress = frameCount > 0 ? frameIndex / frameCount : 0;
 
-                // 节流进度回调（200ms）
                 EmitProgressIfNeeded(progress);
 
                 if (frameIndex % previewInterval == 0)
                 {
                     var previewFrame = frame.Clone();
-                    // 发送预览帧到有界队列（丢旧帧）
                     _ = _previewChannel?.Writer.TryWrite(previewFrame);
                 }
 
@@ -270,7 +259,6 @@ public class VideoProcessor
                     if (MarkerMatcher.Set[markerIndex].Finished) Callbacks.OnNewMarker(MarkerMatcher.Set[markerIndex]);
                 }
 
-                // 帧跳过：状态稳定时用 Grab() 跳过中间帧
                 if (!matchBannerNow && ContentMatcher is { Finished: true })
                 {
                     stableCount++;
@@ -285,7 +273,6 @@ public class VideoProcessor
                     stableCount = 0;
                 }
 
-                // 清空异常计数（处理成功）
                 _consecutiveExceptionCount = 0;
             }
             catch (OperationCanceledException)
@@ -295,7 +282,6 @@ public class VideoProcessor
             }
             catch (Exception e)
             {
-                // 异常熔断：连续异常超过阈值则退出
                 _consecutiveExceptionCount++;
                 if (_consecutiveExceptionCount >= ExceptionThreshold)
                 {
@@ -315,9 +301,8 @@ public class VideoProcessor
             }
         }
 
-        EmitProgressIfNeeded(1); // 最终完成信号
+        EmitProgressIfNeeded(1);
 
-        // 关闭预览通道并等待消费任务结束
         _previewChannel?.Writer.Complete();
         try
         {
@@ -325,7 +310,6 @@ public class VideoProcessor
         }
         catch
         {
-            // 超时或异常忽略
         }
 
         frame.Dispose();
@@ -337,8 +321,6 @@ public class VideoProcessor
         if (StopReason == ProcessStopReason.None)
             StopReason = ProcessStopReason.Completed;
 
-        return;
-
         bool MatchMarkerNow()
         {
             if (MarkerMatcher!.Set.Count == 0) return false;
@@ -347,7 +329,6 @@ public class VideoProcessor
             if (dialogIndex < 0) return true;
             return dialogIndex >= markerIndexInDialog[markerIndex];
         }
-
 
         List<int> MarkerIndexOfDialog()
         {
@@ -398,9 +379,6 @@ public class VideoProcessor
         }
     }
 
-    /// <summary>
-    /// 启动预览帧消费任务，确保 Mat 资源正确释放
-    /// </summary>
     private async Task StartPreviewConsumer(Channel<Mat> previewChannel, CancellationToken token)
     {
         try

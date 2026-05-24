@@ -1,3 +1,13 @@
+# SekaiTools Avalonia v1.0.1 更新日志
+
+## 设置
+
+- 新增模板匹配阈值自定义（设置页 Slider 调节）
+- 支持分别调整：对话名牌/对话内容（普通/特殊）、横幅、地点角标
+- 阈值持久化到 setting.json，重启保持
+
+---
+
 # SekaiTools Avalonia v1.0-pre 更新日志
 
 ## 跨平台重构

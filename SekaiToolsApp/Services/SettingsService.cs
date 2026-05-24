@@ -10,9 +10,7 @@ namespace SekaiToolsApp.Services;
 
 /// <summary>
 /// 用户配置的运行时单例。负责加载/保存 JSON 以及向 Avalonia 应用应用主题。
-///
-/// 配置文件路径与原 WPF 实现保持一致 (<c>%USERPROFILE%/SekaiTools/Data/setting.json</c>)，
-/// 迁移期两边读写同一份文件，避免重复维护。
+/// 配置文件路径：~/SekaiTools/Data/setting.json。
 /// </summary>
 public sealed class SettingsService
 {

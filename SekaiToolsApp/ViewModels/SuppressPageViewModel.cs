@@ -11,15 +11,6 @@ namespace SekaiToolsApp.ViewModels;
 
 /// <summary>
 /// 视频压制页 ViewModel。
-///
-/// 对应原 <c>SekaiToolsGUI/ViewModel/Suppress/SuppressPageModel</c>，但去掉了
-/// singleton；该 VM 由 <see cref="Views.Pages.SuppressPageView"/> 持有，
-/// <see cref="Suppressor"/> 也由 View 直接构造，回调里更新本 VM。
-///
-/// 状态机和 <see cref="SubtitlePageViewModel"/> 一致：
-/// <see cref="SuppressRunState.NotStarted"/> → <see cref="SuppressRunState.Running"/>
-/// → <see cref="SuppressRunState.Finished"/> / <see cref="SuppressRunState.Stopped"/>
-/// / <see cref="SuppressRunState.Failed"/>。
 /// </summary>
 public partial class SuppressPageViewModel : ViewModelBase
 {

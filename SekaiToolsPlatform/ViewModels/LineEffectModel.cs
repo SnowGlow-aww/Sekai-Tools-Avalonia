@@ -3,7 +3,7 @@ using SekaiToolsBase.Story.StoryEvent;
 namespace SekaiToolsPlatform.ViewModels;
 
 /// <summary>
-/// 旁白 / Banner / Marker 等只有正文没有发言人的行。结构对应原 MAUI 版本，无改动。
+/// 旁白 / Banner / Marker 等只有正文没有发言人的行。
 /// </summary>
 public class LineEffectModel : LineModel
 {

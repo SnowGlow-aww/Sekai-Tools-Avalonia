@@ -15,18 +15,7 @@ public enum TemplateUsage
 }
 
 /// <summary>
-/// 渲染 OCR 文本模板（由原 GDI+ 实现切到 SkiaSharp，跨平台可运行）。
-///
-/// 公共 API 与原 GDI+ 版本保持一致：
-/// <list type="bullet">
-///   <item><see cref="GetMenuSign"/> / <see cref="GetMenuSignSize"/></item>
-///   <item><see cref="GetFontSize(double)"/> / <see cref="GetFontSize(System.Drawing.Size,double)"/></item>
-///   <item><see cref="GetTemplate"/></item>
-/// </list>
-///
-/// 背景：原实现依赖 <c>System.Drawing.Common</c> 的 <c>Bitmap</c>/<c>Graphics</c>/<c>Font</c>/<c>GraphicsPath</c>，
-/// 仅在 Windows 上可用。<see cref="SkiaSharp"/> 渲染的字形抗锯齿规则与 GDI+ 不完全一致，
-/// 模板匹配阈值在 <c>TemplateMatcher</c> 中已有冗余，可吸收差异。
+/// 使用 SkiaSharp 渲染文本模板图像，供模板匹配使用。
 /// </summary>
 public class TemplateManager(Size videoResolution, bool noScale = false)
 {
@@ -88,18 +77,13 @@ public class TemplateManager(Size videoResolution, bool noScale = false)
 
     private static Mat CropByAlpha(Mat bgra)
     {
-        // BGRA -> 用 alpha 通道找文字包围盒，比 BGR2GRAY 更准确，且不会触发 OpenCV
-        // 在 4 通道输入上对 BGR2GRAY 的歧义。
         using var alpha = new Mat();
         CvInvoke.ExtractChannel(bgra, alpha, 3);
         using var binary = new Mat();
         CvInvoke.Threshold(alpha, binary, 1, 255, ThresholdType.Binary);
         var rect = CvInvoke.BoundingRectangle(binary);
         if (rect.Width == 0 || rect.Height == 0)
-        {
-            // 整张全透明：回退为整图，避免后续切片崩溃。
             return bgra.Clone();
-        }
         return new Mat(bgra, rect).Clone();
     }
 
@@ -145,7 +129,6 @@ public class TemplateManager(Size videoResolution, bool noScale = false)
 
         using (var canvas = new SKCanvas(bitmap))
         {
-            // Use path-based rendering to match GDI+ GraphicsPath.AddString behavior
             using var textPaint = new SKPaint
             {
                 Typeface = typeface,
@@ -183,12 +166,10 @@ public class TemplateManager(Size videoResolution, bool noScale = false)
             canvas.DrawPath(textPath, fillPaint);
         }
 
-        // SKBitmap (BGRA8888 Unpremul) -> Emgu Mat (BGRA, 8U, 4ch)
         var skMat = SkBitmapToBgraMat(bitmap);
 
         if (usage == TemplateUsage.BannerContent)
         {
-            // 与原实现保持：裁到内容包围盒后扩 padding，再用横幅深灰底填充透明区域。
             using var cropped = CropByAlpha(skMat);
             skMat.Dispose();
 
@@ -226,13 +207,8 @@ public class TemplateManager(Size videoResolution, bool noScale = false)
         };
     }
 
-    /// <summary>
-    /// SKBitmap (BGRA8888) 复制到独立的 Emgu Mat，避免引用 SKBitmap 即将释放的内存。
-    /// </summary>
     private static Mat SkBitmapToBgraMat(SKBitmap bitmap)
     {
-        // SkiaSharp 在 BGRA8888 上每行字节 = bitmap.RowBytes，可能含末尾 padding。
-        // OpenCV Mat 用 step 描述行步长，可以直接对齐。
         var src = new Mat(bitmap.Height, bitmap.Width, DepthType.Cv8U, 4, bitmap.GetPixels(), bitmap.RowBytes);
         try
         {

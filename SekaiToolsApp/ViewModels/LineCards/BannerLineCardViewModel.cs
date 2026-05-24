@@ -4,7 +4,6 @@ namespace SekaiToolsApp.ViewModels.LineCards;
 
 /// <summary>
 /// 横幅行卡片 VM。横幅没有翻译角色字段，只展示原文 / 译文及起止时间。
-/// 对应原 WPF <c>BannerLineModel</c>。
 /// </summary>
 public class BannerLineCardViewModel(BannerBaseFrameSet set) : LineCardViewModelBase
 {

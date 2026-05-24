@@ -18,11 +18,6 @@ namespace SekaiToolsApp.Views.Pages.Components;
 
 /// <summary>
 /// 翻译页左侧的"特殊字符"侧栏。
-///
-/// 平移自 SekaiToolsMauiText.View.Translate.Components.FastCopyView：
-/// - <c>Microsoft.Maui.Storage.Preferences</c> → <see cref="JsonFilePlatformPreferences"/>
-/// - <c>Clipboard.SetTextAsync</c> → Avalonia 的 <see cref="TopLevel.Clipboard"/>
-/// - <c>DisplayPromptAsync</c> 自定义文本输入对话框 → 简易 Window 弹窗
 /// </summary>
 public partial class FastCopyView : UserControl
 {

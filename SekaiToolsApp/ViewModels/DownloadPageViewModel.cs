@@ -23,15 +23,9 @@ namespace SekaiToolsApp.ViewModels;
 /// <summary>
 /// 数据下载主页 ViewModel。
 ///
-/// 对应原 WPF <c>SekaiToolsGUI/View/Download/DownloadPage.xaml.cs</c> 及其 5 个子 Tab。
 /// 五种剧情类型共享一个候选列表 (<see cref="Candidates"/>) 与下载列表 (<see cref="Tasks"/>)；
 /// 各 tab 拥有独立的过滤状态（Unit / Event / Special / Card / Action），切换 <see cref="StoryTypeIndex"/>
 /// 时由 <see cref="RebuildCandidates"/> 路由到对应的构建方法。
-///
-/// 简化项（与上游 WPF 的差距）：
-/// - Event/Action tab 上游有 31-角色 checkbox 网格 + 团 checkbox 关联；这里只保留主类型/区域过滤，
-///   未保留角色过滤（用户群较小，过滤价值低；如有需要后续可作为 m1-download-charfilter 子任务补全）。
-/// - Card tab 卡片"前篇/后篇" 显示在同一行；这里拆成两条独立 Candidate。
 /// </summary>
 public partial class DownloadPageViewModel : ViewModelBase
 {
@@ -53,7 +47,7 @@ public partial class DownloadPageViewModel : ViewModelBase
         "主界面语音",
     ];
 
-    /// <summary>活动剧情按 GameEvent.EventType 过滤。索引和上游 WPF EventStoryTab 的 BoxType 保持一致。</summary>
+    /// <summary>活动剧情按 GameEvent.EventType 过滤。</summary>
     public static readonly string[] EventTypeFilterNames =
     [
         "全部",
